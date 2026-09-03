@@ -1,5 +1,5 @@
 import { type Bridge, BridgeKind } from "@serverkgg/bridge";
-import { maxPlayersOf, playerRoster, readConfig } from "../shared";
+import { HytaleStage, maxPlayersOf, playerRoster, readConfig, stageOf } from "../shared";
 
 const REFRESH_SECONDS = 60;
 
@@ -8,6 +8,13 @@ export const query: Bridge.Query = {
 	refreshSeconds: REFRESH_SECONDS,
 	async sample(context) {
 		const max = maxPlayersOf(await readConfig(context));
+
+		if ((await stageOf(context)) === HytaleStage.Bootstrap) {
+			return {
+				online: null,
+				max,
+			};
+		}
 
 		try {
 			return {

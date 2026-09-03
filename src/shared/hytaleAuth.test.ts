@@ -1,40 +1,55 @@
 import { describe, expect, test } from "bun:test";
-import { HytaleAuthState, parseAuthReport, parseDeviceCode } from "./hytaleAuth";
+import { DEFAULT_DEVICE_CODE_TTL_SECONDS, HytaleAuthState, parseAuthReport, parseDeviceCode } from "./hytaleAuth";
+
+const DEVICE_BLOCK = [
+	"Starting OAuth2 device flow. Check console for verification URL.",
+	"===================================================================",
+	"DEVICE AUTHORIZATION",
+	"===================================================================",
+	"Visit: https://oauth.accounts.hytale.com/oauth2/device/verify",
+	"Enter code: FnM4EEUw",
+	"Or visit: https://oauth.accounts.hytale.com/oauth2/device/verify?user_code=FnM4EEUw",
+	"===================================================================",
+	"Waiting for authorization (expires in 599 seconds)...",
+];
+
+const SIGNED_OUT_STATUS = [
+	"=== Server Authentication Status ===",
+	"Connection Auth: Authenticated (mTLS + JWT)",
+	"Token Source: Not authenticated",
+	"Profile: ",
+	"Session Token: Missing",
+	"Identity Token: Missing",
+	"Expiry: ",
+	"Certificate: Not loaded",
+	"Use '/auth login browser' or '/auth login device' to authenticate.",
+];
 
 describe("parseDeviceCode", () => {
-	test("reads the code out of the verification url the server prints", () => {
+	test("reads the code, the link and the expiry out of the block the server prints", () => {
+		expect(parseDeviceCode(DEVICE_BLOCK)).toEqual({
+			code: "FnM4EEUw",
+			url: "https://oauth.accounts.hytale.com/oauth2/device/verify?user_code=FnM4EEUw",
+			expiresInSeconds: 599,
+		});
+	});
+
+	test("falls back to the documented ttl when the waiting line scrolled past", () => {
 		expect(
 			parseDeviceCode([
-				"===================================================================",
-				"DEVICE AUTHORIZATION",
-				"===================================================================",
-				"Visit: https://accounts.hytale.com/device",
-				"Enter code: ABCD-1234",
 				"Or visit: https://accounts.hytale.com/device?user_code=ABCD-1234",
-				"===================================================================",
-				"Waiting for authorization (expires in 900 seconds)...",
 			]),
 		).toEqual({
 			code: "ABCD-1234",
 			url: "https://accounts.hytale.com/device?user_code=ABCD-1234",
-		});
-	});
-
-	test("reads the oauth verification url the downloader and the console both print", () => {
-		expect(
-			parseDeviceCode([
-				"Or visit: https://oauth.accounts.hytale.com/oauth2/device/verify?user_code=k9zEVi4p",
-			]),
-		).toEqual({
-			code: "k9zEVi4p",
-			url: "https://oauth.accounts.hytale.com/oauth2/device/verify?user_code=k9zEVi4p",
+			expiresInSeconds: DEFAULT_DEVICE_CODE_TTL_SECONDS,
 		});
 	});
 
 	test("ignores the bare verification url with no code on it", () => {
 		expect(
 			parseDeviceCode([
-				"Visit: https://accounts.hytale.com/device",
+				"Visit: https://oauth.accounts.hytale.com/oauth2/device/verify",
 				"Starting OAuth2 device flow. Check console for verification URL.",
 			]),
 		).toBeNull();
@@ -46,26 +61,35 @@ describe("parseDeviceCode", () => {
 });
 
 describe("parseAuthReport", () => {
-	test("reads a signed in server", () => {
+	test("reads a server that never signed in, even though the line above says Authenticated", () => {
+		const report = parseAuthReport(SIGNED_OUT_STATUS);
+
+		expect(report.state).toBe(HytaleAuthState.SignedOut);
+		expect(report.mode).toBeNull();
+	});
+
+	test("reads a signed in server off its token source", () => {
 		const report = parseAuthReport([
 			"=== Server Authentication Status ===",
-			"Connection mode: Authenticated (mTLS + JWT)",
-			"Mode: OAuth Device",
-			"Token: Present",
+			"Connection Auth: Authenticated (mTLS + JWT)",
+			"Token Source: OAuth Device",
+			"Profile: meslzy",
+			"Session Token: Present",
+			"Identity Token: Present",
+			"Certificate: Loaded",
 		]);
 
 		expect(report.state).toBe(HytaleAuthState.SignedIn);
 		expect(report.mode).toBe("OAuth Device");
 	});
 
-	test("reads a server that never signed in", () => {
-		const report = parseAuthReport([
-			"=== Server Authentication Status ===",
-			"Not authenticated",
-			"Use '/auth login browser' or '/auth login device' to authenticate.",
-		]);
-
-		expect(report.state).toBe(HytaleAuthState.SignedOut);
+	test("reads a server whose token source survived but whose session token did not", () => {
+		expect(
+			parseAuthReport([
+				"Token Source: OAuth Device",
+				"Session Token: Missing",
+			]).state,
+		).toBe(HytaleAuthState.SignedOut);
 	});
 
 	test("reads a server that just logged out", () => {

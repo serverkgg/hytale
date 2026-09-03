@@ -18,11 +18,7 @@ RUN set -eux; \
     fi; \
     groupadd -g 1000 container; \
     useradd -M -d /home/container -u 1000 -g 1000 -s /usr/sbin/nologin container; \
-    mkdir -p /home/container /serverk/run /opt/hytale; \
-    curl -fsSL https://downloader.hytale.com/hytale-downloader.zip -o /tmp/hytale-downloader.zip; \
-    unzip -p /tmp/hytale-downloader.zip hytale-downloader-linux-amd64 > /opt/hytale/hytale-downloader; \
-    rm -f /tmp/hytale-downloader.zip; \
-    chmod 0755 /opt/hytale/hytale-downloader
+    mkdir -p /home/container /serverk/run
 
 ENV LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8 \

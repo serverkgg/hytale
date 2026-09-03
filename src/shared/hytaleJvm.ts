@@ -19,3 +19,22 @@ export const heapFor = (memoryMb: number) => {
 export const initialHeapFor = (heapMb: number) => {
 	return Math.max(Math.floor(heapMb / 2), 1);
 };
+
+export const heapArguments = (memoryMb: number) => {
+	const heapMb = heapFor(memoryMb);
+
+	return [
+		`-Xms${initialHeapFor(heapMb)}M`,
+		`-Xmx${heapMb}M`,
+	];
+};
+
+export const jvmOptions = (memoryMb: number) => {
+	return [
+		...heapArguments(memoryMb),
+		"-XX:+UseG1GC",
+		"-XX:MaxGCPauseMillis=200",
+		"-XX:+ParallelRefProcEnabled",
+		"-Dfile.encoding=UTF-8",
+	];
+};

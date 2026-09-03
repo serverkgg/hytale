@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { bootedVersion, SERVER_READY } from "../shared";
-import { heapFor, initialHeapFor } from "./heap";
-import { launchArguments } from "./lifecycle";
+import { bootedVersion, heapFor, initialHeapFor, jvmOptions, SERVER_READY } from "../shared";
+import { bootstrapArguments, serverArguments } from "./lifecycle";
 
 describe("heapFor", () => {
 	test("leaves headroom for the jvm itself", () => {
@@ -22,44 +21,64 @@ describe("heapFor", () => {
 	});
 });
 
-describe("launchArguments", () => {
-	test("binds the manifest port and runs authenticated", () => {
-		expect(
-			launchArguments({
-				aot: true,
-				heapMb: 3276,
-				port: 5523,
-			}),
-		).toEqual([
+describe("jvmOptions", () => {
+	test("writes one jvm argument per line, sized from the plan", () => {
+		expect(jvmOptions(4096).slice(0, 2)).toEqual([
+			"-Xms1638M",
+			"-Xmx3276M",
+		]);
+	});
+
+	test("never emits an argument with a space in it, because start.sh reads the file line by line", () => {
+		for (const option of jvmOptions(8192)) {
+			expect(option).not.toContain(" ");
+			expect(option.startsWith("-")).toBe(true);
+		}
+	});
+});
+
+describe("bootstrapArguments", () => {
+	test("runs the installer jar from the volume root", () => {
+		expect(bootstrapArguments(4096)).toEqual([
 			"java",
 			"-Xms1638M",
 			"-Xmx3276M",
-			"-XX:AOTCache=Server/HytaleServer.aot",
 			"-jar",
-			"Server/HytaleServer.jar",
-			"--assets",
-			"Assets.zip",
+			"HytaleServer.jar",
+			"--bootstrap",
+			"--disable-sentry",
+		]);
+	});
+});
+
+describe("serverArguments", () => {
+	test("runs the official wrapper so exit code 8 is handled inside it", () => {
+		expect(serverArguments(5523)).toEqual([
+			"bash",
+			"start.sh",
 			"--bind",
 			"0.0.0.0:5523",
 			"--auth-mode",
 			"authenticated",
+			"--disable-sentry",
 		]);
 	});
 
-	test("drops the aot cache when the payload did not ship one", () => {
-		expect(
-			launchArguments({
-				aot: false,
-				heapMb: 3276,
-				port: 5520,
-			}),
-		).not.toContain("-XX:AOTCache=Server/HytaleServer.aot");
+	test("never passes assets or a heap, because start.sh owns both", () => {
+		const argv = serverArguments(5520);
+
+		expect(argv).not.toContain("--assets");
+		expect(argv.some((argument) => argument.startsWith("-Xmx"))).toBe(false);
 	});
 });
 
 describe("SERVER_READY", () => {
-	test("fires on the booted line", () => {
-		expect(SERVER_READY.test("[2026/01/24 12:52:15   INFO]   [HytaleServer] Hytale Server Booted!")).toBe(true);
+	test("fires on the booted line the server really prints", () => {
+		expect(
+			SERVER_READY.test(
+				"[2026/09/03 22:01:32   INFO]   [HytaleServer]   Hytale Server Booted! [Multiplayer, Fresh Universe] took 972ms",
+			),
+		).toBe(true);
 	});
 
 	test("fires on the listening line", () => {
@@ -73,7 +92,7 @@ describe("SERVER_READY", () => {
 	test("does not fire while it is still booting", () => {
 		expect(
 			SERVER_READY.test(
-				"[2026/01/24 12:51:45   INFO]   [HytaleServer] Booting up HytaleServer - Version: 2026.01.17-4b0f30090, Revision: 4b0f3",
+				"[2026/09/03 21:57:07   INFO]   [HytaleServer] Booting up HytaleServer - Version: 0.6.3, Revision: ff802bf5",
 			),
 		).toBe(false);
 	});
@@ -83,9 +102,9 @@ describe("bootedVersion", () => {
 	test("reads the version off the boot line", () => {
 		expect(
 			bootedVersion(
-				"[2026/01/24 12:51:45   INFO]   [HytaleServer] Booting up HytaleServer - Version: 2026.01.17-4b0f30090, Revision: 4b0f3",
+				"[2026/09/03 21:57:07   INFO]   [HytaleServer] Booting up HytaleServer - Version: 0.6.3, Revision: ff802bf5",
 			),
-		).toBe("2026.01.17-4b0f30090");
+		).toBe("0.6.3");
 	});
 
 	test("answers null on any other line", () => {

@@ -87,6 +87,7 @@ describe("laying out the hytale panel", () => {
 		expect(details.at(0)?.module).toBe("login");
 		expect(details.at(0)?.actions?.map((action) => action.id)).toEqual([
 			"begin",
+			"cancel",
 			"signout",
 		]);
 	});
@@ -122,10 +123,13 @@ describe("the fields the panel renders for hytale settings", () => {
 		}
 	});
 
-	test("only bounds numeric fields", () => {
+	test("only bounds fields that carry a number", () => {
 		for (const field of fields) {
 			if (field.min !== undefined || field.max !== undefined || field.step !== undefined) {
-				expect(field.control).toBe(BridgeControl.Number);
+				expect([
+					BridgeControl.Number,
+					BridgeControl.Slider,
+				]).toContain(field.control);
 			}
 		}
 	});
@@ -143,9 +147,9 @@ describe("the fields the panel renders for hytale settings", () => {
 		expect(fieldNamed("MaxPlayers")?.max).toBeGreaterThanOrEqual(manifest.resources.maxRecommendedPlayers);
 	});
 
-	test("bounds the view distance, because it is what drives memory", () => {
-		expect(fieldNamed("MaxViewRadius")?.min).toBeGreaterThan(0);
-		expect(fieldNamed("MaxViewRadius")?.max).toBeGreaterThanOrEqual(384);
+	test("bounds the view distance to the range hytale itself accepts, because it is what drives memory", () => {
+		expect(fieldNamed("MaxViewRadius")?.min).toBe(1);
+		expect(fieldNamed("MaxViewRadius")?.max).toBe(32);
 	});
 
 	test("advertises the same announce limit the driver enforces", () => {

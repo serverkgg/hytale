@@ -1,15 +1,21 @@
 import { type Bridge, BridgeDetailFormat, BridgeDetailTone, BridgeKind } from "@serverkgg/bridge";
 import {
-	DEVICE_CODE_TTL_SECONDS,
+	awaitAuthorization,
+	cancelDeviceLogin,
+	downloadPayload,
 	endDeviceLogin,
 	type HytaleAuthReport,
 	HytaleAuthState,
 	type HytaleDeviceCode,
+	HytaleStage,
 	readAuth,
+	stageOf,
 	startDeviceLogin,
 } from "../shared";
 
 export const LOGIN_START_ACTION = "begin";
+
+export const LOGIN_CANCEL_ACTION = "cancel";
 
 export const LOGIN_LOGOUT_ACTION = "signout";
 
@@ -18,6 +24,8 @@ const DETAIL_ID = "hytale-login";
 const PENDING_SLACK_MS = 5000;
 
 const DETAIL_REFRESH_SECONDS = 15;
+
+const TITLE = "Hytale";
 
 const SIGNED_IN_BADGE: Bridge.DetailBadge = {
 	tone: BridgeDetailTone.Success,
@@ -51,25 +59,57 @@ const PENDING_BADGE: Bridge.DetailBadge = {
 	},
 };
 
+const SETUP_BADGE: Bridge.DetailBadge = {
+	tone: BridgeDetailTone.Neutral,
+	label: {
+		ar: "مرحلة التركيب",
+		en: "Setup stage",
+	},
+};
+
+const DOWNLOADING_BADGE: Bridge.DetailBadge = {
+	tone: BridgeDetailTone.Neutral,
+	label: {
+		ar: "ينزّل ملفات اللعبة",
+		en: "Downloading the game",
+	},
+};
+
+const READY_BADGE: Bridge.DetailBadge = {
+	tone: BridgeDetailTone.Success,
+	label: {
+		ar: "السيرفر مركّب",
+		en: "Server installed",
+	},
+};
+
 const VERIFY_LINK: Bridge.Text = {
 	ar: "افتح صفحة التأكيد",
 	en: "Open the verification page",
 };
 
-const TITLE = "Hytale";
-
 const SUBTITLE_SIGNED_IN = "مسجّل الدخول — Signed in";
 
 const SUBTITLE_SIGNED_OUT = "يحتاج تسجيل دخول — Needs a sign-in";
 
-const DESCRIPTION_SIGNED_OUT = [
-	"سيرفرك لازم يسجّل دخوله على شبكة هايتيل بحسابك مرة وحدة قبل ما يستقبل لاعبين.",
-	"Your server signs in to the Hytale network with your own account, once, before it accepts players.",
+const NEXT_SETUP = [
+	"اضغط «ابدأ الدخول»، سجّل دخول بحساب هايتيل حقك، وبعدها سيرفرك ينزّل ملفات اللعبة ويشتغل لحاله.",
+	"Press Start login, sign in with your own Hytale account, and your server then downloads the game files and comes up on its own.",
 ].join("\n\n");
 
-const DESCRIPTION_PENDING = [
-	"افتح الرابط تحت في المتصفح، سجّل دخول بحساب هايتيل، والصق الرمز.",
-	"Open the link below in your browser, sign in with your Hytale account, and enter the code.",
+const NEXT_PENDING = [
+	"افتح الرابط تحت في المتصفح، سجّل دخول بحساب هايتيل، والصق الرمز. لا تسكّر اللوحة.",
+	"Open the link below in your browser, sign in with your Hytale account, and enter the code. Keep this page open.",
+].join("\n\n");
+
+const NEXT_DOWNLOADING = [
+	"سيرفرك سجّل دخوله وبدأ ينزّل ملفات اللعبة. العملية تاخذ شوي — تابعها من الكونسول، وبعدها يشتغل لحاله.",
+	"Your server signed in and started downloading the game files. It takes a while — watch the console, then it starts on its own.",
+].join("\n\n");
+
+const NEXT_SIGNED_OUT = [
+	"سيرفرك مركّب بس مسجّل خروج، وما يستقبل لاعبين. اضغط «ابدأ الدخول» عشان يرجع.",
+	"Your server is installed but signed out, so it takes no players. Press Start login to bring it back.",
 ].join("\n\n");
 
 interface PendingLogin extends HytaleDeviceCode {
@@ -86,26 +126,59 @@ export const livePending = (now: number): PendingLogin | null => {
 	return pending;
 };
 
-const badgesOf = (report: HytaleAuthReport, waiting: boolean): Bridge.DetailBadge[] => {
-	const badge =
-		report.state === HytaleAuthState.SignedIn
-			? SIGNED_IN_BADGE
-			: report.state === HytaleAuthState.SignedOut
-				? SIGNED_OUT_BADGE
-				: UNKNOWN_BADGE;
+const stageBadge = (stage: HytaleStage, state: HytaleAuthState) => {
+	if (stage === HytaleStage.Server) {
+		return READY_BADGE;
+	}
 
-	return waiting
-		? [
-				badge,
-				PENDING_BADGE,
-			]
-		: [
-				badge,
-			];
+	return state === HytaleAuthState.SignedIn ? DOWNLOADING_BADGE : SETUP_BADGE;
 };
 
-const statsOf = (report: HytaleAuthReport, waiting: PendingLogin | null): Bridge.DetailStat[] => {
+const authBadge = (state: HytaleAuthState) => {
+	if (state === HytaleAuthState.SignedIn) {
+		return SIGNED_IN_BADGE;
+	}
+
+	return state === HytaleAuthState.SignedOut ? SIGNED_OUT_BADGE : UNKNOWN_BADGE;
+};
+
+export const badgesOf = (stage: HytaleStage, state: HytaleAuthState, waiting: boolean): Bridge.DetailBadge[] => {
+	if (waiting) {
+		return [
+			stageBadge(stage, state),
+			PENDING_BADGE,
+		];
+	}
+
 	return [
+		stageBadge(stage, state),
+		authBadge(state),
+	];
+};
+
+export const nextStep = (stage: HytaleStage, state: HytaleAuthState, waiting: boolean) => {
+	if (waiting) {
+		return NEXT_PENDING;
+	}
+
+	if (stage === HytaleStage.Bootstrap) {
+		return state === HytaleAuthState.SignedIn ? NEXT_DOWNLOADING : NEXT_SETUP;
+	}
+
+	return state === HytaleAuthState.SignedIn ? null : NEXT_SIGNED_OUT;
+};
+
+const statsOf = (stage: HytaleStage, report: HytaleAuthReport, waiting: PendingLogin | null): Bridge.DetailStat[] => {
+	return [
+		{
+			key: "stage",
+			label: {
+				ar: "المرحلة",
+				en: "Stage",
+			},
+			value: stage === HytaleStage.Server ? "الخادم — Server" : "التركيب — Setup",
+			format: BridgeDetailFormat.Text,
+		},
 		...(waiting === null
 			? []
 			: [
@@ -140,28 +213,57 @@ const statsOf = (report: HytaleAuthReport, waiting: PendingLogin | null): Bridge
 	];
 };
 
+const actionsOf = (state: HytaleAuthState, waiting: boolean) => {
+	if (waiting) {
+		return [
+			LOGIN_CANCEL_ACTION,
+		];
+	}
+
+	return state === HytaleAuthState.SignedIn
+		? [
+				LOGIN_LOGOUT_ACTION,
+			]
+		: [
+				LOGIN_START_ACTION,
+			];
+};
+
+const collectPayload = async (context: Bridge.Context, timeoutMs: number) => {
+	if (!(await awaitAuthorization(context, timeoutMs))) {
+		return;
+	}
+
+	pending = null;
+
+	if ((await stageOf(context)) === HytaleStage.Server) {
+		return;
+	}
+
+	context.log("hytale accepted the sign-in, pulling the server payload");
+
+	await downloadPayload(context);
+};
+
 export const login: Bridge.Detail = {
 	kind: BridgeKind.Detail,
 	requiresRunning: true,
 	refreshSeconds: DETAIL_REFRESH_SECONDS,
 
 	async read(context) {
+		const stage = await stageOf(context);
 		const report = await readAuth(context);
 		const waiting = report.state === HytaleAuthState.SignedIn ? null : livePending(Date.now());
+		const step = nextStep(stage, report.state, waiting !== null);
 
 		return {
 			id: DETAIL_ID,
 			title: TITLE,
 			subtitle: report.state === HytaleAuthState.SignedIn ? SUBTITLE_SIGNED_IN : SUBTITLE_SIGNED_OUT,
-			description:
-				waiting === null
-					? report.state === HytaleAuthState.SignedIn
-						? report.lines.join("\n")
-						: DESCRIPTION_SIGNED_OUT
-					: DESCRIPTION_PENDING,
+			description: step ?? report.lines.join("\n"),
 			image: null,
-			badges: badgesOf(report, waiting !== null),
-			stats: statsOf(report, waiting),
+			badges: badgesOf(stage, report.state, waiting !== null),
+			stats: statsOf(stage, report, waiting),
 			links:
 				waiting === null
 					? []
@@ -171,30 +273,39 @@ export const login: Bridge.Detail = {
 								url: waiting.url,
 							},
 						],
-			stale: report.state !== HytaleAuthState.SignedIn,
-			actions:
-				report.state === HytaleAuthState.SignedIn
-					? [
-							LOGIN_LOGOUT_ACTION,
-						]
-					: [
-							LOGIN_START_ACTION,
-						],
+			stale: report.state !== HytaleAuthState.SignedIn || stage === HytaleStage.Bootstrap,
+			actions: actionsOf(report.state, waiting !== null),
 		};
 	},
 
 	actions: {
 		[LOGIN_START_ACTION]: async (context) => {
 			const device = await startDeviceLogin(context);
+			const timeoutMs = device.expiresInSeconds * 1000;
 
 			pending = {
 				...device,
-				expiresAt: Date.now() + DEVICE_CODE_TTL_SECONDS * 1000 - PENDING_SLACK_MS,
+				expiresAt: Date.now() + timeoutMs - PENDING_SLACK_MS,
 			};
 
 			context.log("a hytale device login is waiting for the customer", {
 				url: device.url,
+				expiresInSeconds: device.expiresInSeconds,
 			});
+
+			void collectPayload(context, timeoutMs).catch((error: unknown) => {
+				context.log.warn("the hytale payload download could not be started", {
+					error: error instanceof Error ? error.message : String(error),
+				});
+			});
+
+			return null;
+		},
+
+		[LOGIN_CANCEL_ACTION]: async (context) => {
+			pending = null;
+
+			await cancelDeviceLogin(context);
 
 			return null;
 		},

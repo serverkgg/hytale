@@ -1,31 +1,41 @@
 import { type Bridge, BridgeKind } from "@serverkgg/bridge";
-import { ASSETS_ARCHIVE, isServerInstalled, SERVER_AOT, SERVER_JAR, SERVER_READY } from "../shared";
-import { heapFor, initialHeapFor } from "./heap";
+import { prepareStage, stampVersion } from "../install";
+import {
+	BOOTSTRAP_JAR,
+	bootedVersion,
+	HytaleStage,
+	heapArguments,
+	SERVER_READY,
+	START_SCRIPT,
+	STOP_COMMAND,
+} from "../shared";
 
 const STOP_TIMEOUT_SECONDS = 120;
 
-const STOP_COMMAND = "/stop";
-
 const AUTH_MODE = "authenticated";
 
-export const launchArguments = (options: { aot: boolean; heapMb: number; port: number }) => {
+const BOOT_LINES = 300;
+
+export const bootstrapArguments = (memoryMb: number) => {
 	return [
 		"java",
-		`-Xms${initialHeapFor(options.heapMb)}M`,
-		`-Xmx${options.heapMb}M`,
-		...(options.aot
-			? [
-					`-XX:AOTCache=${SERVER_AOT}`,
-				]
-			: []),
+		...heapArguments(memoryMb),
 		"-jar",
-		SERVER_JAR,
-		"--assets",
-		ASSETS_ARCHIVE,
+		BOOTSTRAP_JAR,
+		"--bootstrap",
+		"--disable-sentry",
+	];
+};
+
+export const serverArguments = (port: number) => {
+	return [
+		"bash",
+		START_SCRIPT,
 		"--bind",
-		`0.0.0.0:${options.port}`,
+		`0.0.0.0:${port}`,
 		"--auth-mode",
 		AUTH_MODE,
+		"--disable-sentry",
 	];
 };
 
@@ -34,19 +44,26 @@ export const lifecycle: Bridge.Lifecycle = {
 	ready: SERVER_READY,
 	stopTimeoutSeconds: STOP_TIMEOUT_SECONDS,
 	async command(context) {
-		if (!(await isServerInstalled(context))) {
-			throw new Error("hytale is not installed yet");
-		}
+		const stage = await prepareStage(context);
 
-		return launchArguments({
-			aot: await context.files.exists(SERVER_AOT),
-			heapMb: heapFor(context.server.memoryMb),
-			port: context.port("game"),
-		});
+		return stage === HytaleStage.Server
+			? serverArguments(context.port("game"))
+			: bootstrapArguments(context.server.memoryMb);
 	},
 	async stop(context) {
 		context.emit("ServerStopping");
 
 		await context.command(STOP_COMMAND);
+	},
+	async onReady(context) {
+		for (const line of (await context.logs.tail(BOOT_LINES)).toReversed()) {
+			const version = bootedVersion(line);
+
+			if (version !== null) {
+				await stampVersion(context, version);
+
+				return;
+			}
+		}
 	},
 };

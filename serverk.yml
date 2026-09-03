@@ -8,8 +8,8 @@ metadata:
     ar: هايتيل
     en: Hytale
   description:
-    ar: سيرفر هايتيل — عالم مكعبات مفتوح، مغامرات، بناء، وقتال مع أصحابك. عالمك محفوظ على سيرفرك وشغّال 24 ساعة.
-    en: Hytale dedicated servers — an open block world of adventure, building and combat with your friends. Your world lives on your server and runs around the clock.
+    ar: سيرفر هايتيل — عالم مكعبات مفتوح، مغامرات، بناء، وقتال مع أصحابك. عالمك محفوظ على سيرفرك وشغّال 24 ساعة. تسجّل دخوله مرة وحدة بحساب هايتيل حقك، وبعدها يحدّث نفسه على طول.
+    en: Hytale dedicated servers — an open block world of adventure, building and combat with your friends. Your world lives on your server and runs around the clock. You sign it in once with your own Hytale account, and it keeps itself updated from then on.
   tagline:
     ar: عالمك في هايتيل مع أصحابك — سيرفرك جاهز خلال دقيقة
     en: Your Hytale world with your friends — your server, ready in a minute
@@ -41,27 +41,29 @@ container:
         min: 5520
         max: 5569
 
-secrets:
-  - key: HYTALE_DOWNLOADER_CREDENTIALS
-    required: true
-    description:
-      ar: محتوى ملف .hytale-downloader-credentials.json اللي تكتبه أداة تحميل هايتيل الرسمية بعد تسجيل دخول واحد بالجهاز على حساب هايتيل الخاص بسيرفرك. بدونه ما يقدر أي سيرفر ينزّل ملفات اللعبة.
-      en: The contents of .hytale-downloader-credentials.json, written by the official Hytale downloader after one device login on the Serverk-owned Hytale account. Without it no server can download the game files.
-
 backup:
   only:
-    - universe/**
+    - Server/universe/**
+    - Server/config.json
+    - Server/permissions.json
+    - Server/whitelist.json
+    - Server/bans.json
+    - Server/mods/**
     - config.json
     - permissions.json
-    - whitelist.json
-    - bans.json
-    - mods/**
+    - .serverk-install.json
 
 reset:
   keep:
-    - Server
     - Assets.zip
-    - .hytale-downloader-credentials.json
+    - start.sh
+    - start.bat
+    - jvm.options
+    - Server/HytaleServer.jar
+    - Server/HytaleServer.aot
+    - Server/Licenses
+    - Server/auth.enc
+    - Server/auth.key
     - .serverk-install.json
 
 presence:
@@ -70,14 +72,22 @@ presence:
 
 files:
   protected:
-    - Server
     - Assets.zip
-    - .hytale-downloader-credentials.json
+    - start.sh
+    - start.bat
+    - jvm.options
+    - HytaleServer.jar
     - .serverk-install.json
     - auth.enc
     - auth.key
+    - Server/HytaleServer.jar
+    - Server/HytaleServer.aot
+    - Server/Licenses/**
+    - Server/auth.enc
+    - Server/auth.key
+    - updater/**
   notable:
-    - match: config.json
+    - match: Server/config.json
       label:
         ar: إعدادات
         en: Settings
@@ -87,7 +97,7 @@ files:
       note:
         ar: إعدادات السيرفر كاملة — الاسم، الرسالة الترحيبية، كلمة المرور، وعدد اللاعبين. عدّلها من تبويب الإعدادات أحسن، وأي تعديل يبي إعادة تشغيل.
         en: Every server setting — name, MOTD, password and player slots. The Settings tab is the easier way, and any change needs a restart.
-    - match: universe
+    - match: Server/universe
       label:
         ar: بيانات العالم
         en: World data
@@ -96,7 +106,7 @@ files:
       note:
         ar: عوالمك وبيانات اللاعبين. لا تعدّل عليه والسيرفر شغّال، وخذ نسخة احتياطية قبل أي شي.
         en: Your worlds and the player data. Do not touch it while the server runs, and take a backup first.
-    - match: mods
+    - match: Server/mods
       label:
         ar: المودات
         en: Mods
@@ -106,7 +116,7 @@ files:
       note:
         ar: مجلد المودات. حط ملفات المود هنا وأعد التشغيل عشان تشتغل، ولازم كل اللاعبين يكون عندهم نفس المودات.
         en: Your mods folder. Drop mod files here and restart for them to load — every player needs the same mods.
-    - match: whitelist.json
+    - match: Server/whitelist.json
       label:
         ar: القائمة البيضاء
         en: Whitelist
@@ -115,6 +125,15 @@ files:
       note:
         ar: أسماء اللي مسموح لهم يدخلون لما تفعّل القائمة البيضاء. الأسهل تديرها من تبويب التحكم.
         en: Who may join while the whitelist is on. The Controls tab is the easier way to manage it.
+    - match: Server/backups
+      label:
+        ar: نسخ السيرفر
+        en: Server snapshots
+      icon: box
+      color: "#8c8c8c"
+      note:
+        ar: نسخ يحفظها سيرفر هايتيل بنفسه كل نص ساعة وقبل أي تحديث. النسخ الاحتياطية اللي تعتمد عليها من تبويب النسخ الاحتياطية.
+        en: Snapshots the Hytale server keeps on its own every half hour and before any update. The backups you rely on live in the Backups tab.
 
 guideTags:
   - id: start

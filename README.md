@@ -6,17 +6,21 @@ The Hytale game package for the Serverk platform (`serverk.gg`). This repo holds
 
 ## Layout
 
-- `serverk.yml` — the game manifest: metadata, resources, ports, the downloader secret, backup rules, guides.
-- `src/` — the bridge driver: install (the official Hytale downloader), lifecycle, query, backup, and the panel modules.
-- `image/Dockerfile` — the runtime image: Temurin 25 JRE plus the Hytale downloader; the compiled bridge binary is its entrypoint.
+- `serverk.yml` — the game manifest: metadata, resources, ports, backup rules, guides. It declares no platform secret.
+- `src/` — the bridge driver: install (the Maven bootstrap installer), lifecycle, query, and the panel modules.
+- `image/Dockerfile` — the runtime image: Temurin 25 JRE; the compiled bridge binary is its entrypoint.
 - `assets/` — logo and banner (webp).
 - `guides/` — player guides in Arabic and English.
 
 ## How a Hytale server comes up
 
-1. `install` seeds the downloader credentials from the platform secret `HYTALE_DOWNLOADER_CREDENTIALS`, asks the downloader whether the installed version is current, and pulls `HytaleServer.jar` and `Assets.zip` when it is not. It runs on every boot and is a no-op on a healthy, current server.
-2. `lifecycle` starts the JVM with a heap sized from the plan's memory, binds QUIC to the manifest's `game` port, and runs in `authenticated` auth mode.
-3. The customer signs the server in once from the panel's Login tab with a device-code login on their own Hytale account. The tokens persist encrypted inside the server directory.
+The driver has two stages, decided every launch by whether the official payload (`Server/HytaleServer.jar`, `Assets.zip`, `start.sh`) is on the volume.
+
+1. **Bootstrap.** `install` resolves the newest `Server` release from `https://maven.hytale.com/release/com/hypixel/hytale/Server/maven-metadata.xml`, verifies the published `.sha1`, and downloads `HytaleServer.jar` into the volume root through the agent's artifact cache. `lifecycle` runs it as `java -jar HytaleServer.jar --bootstrap`.
+2. **Sign-in.** The customer signs the server in once from the panel's Login tab with a device-code login on their own Hytale account. On the `Authentication successful` line the driver issues `/update download`, and the server extracts the full payload into the official layout, migrates its credentials into `Server/`, and exits.
+3. **Server.** The bridge supervisor relaunches, the driver now sees the payload, writes the driver-owned `Update` and `Backup` blocks into `Server/config.json` plus `jvm.options`, and runs the official wrapper: `bash start.sh --bind 0.0.0.0:<port> --auth-mode authenticated --disable-sentry`. Hytale's own update checker then owns the version: it stages updates and applies them by exiting with code 8, which `start.sh` handles inside the wrapper, so the bridge never sees a crash.
+
+Nothing in this package needs a Serverk-owned Hytale account or a platform secret.
 
 ## Develop
 

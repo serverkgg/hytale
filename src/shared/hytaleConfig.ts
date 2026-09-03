@@ -1,17 +1,55 @@
 import type { Bridge } from "@serverkgg/bridge";
+import { SERVER_DIRECTORY } from "./hytaleServer";
 
 export const CONFIG_FILE = "config.json";
 
-export const readConfig = async (context: Bridge.Context) => {
-	if (!(await context.files.exists(CONFIG_FILE))) {
-		return {};
-	}
+export const PERMISSIONS_FILE = "permissions.json";
 
-	return await context.codec.json.read(CONFIG_FILE);
+export const SERVER_CONFIG_FILE = `${SERVER_DIRECTORY}/${CONFIG_FILE}`;
+
+export const SERVER_PERMISSIONS_FILE = `${SERVER_DIRECTORY}/${PERMISSIONS_FILE}`;
+
+export const UPDATE_SECTION = "Update";
+
+export const BACKUP_SECTION = "Backup";
+
+export const PATCHLINE = "release";
+
+export const configPath = async (context: Bridge.Context) => {
+	return (await context.files.exists(SERVER_CONFIG_FILE)) ? SERVER_CONFIG_FILE : CONFIG_FILE;
+};
+
+export const readConfig = async (context: Bridge.Context) => {
+	return await context.codec.json.read(await configPath(context));
 };
 
 export const mergeConfig = async (context: Bridge.Context, values: Bridge.Values) => {
-	await context.codec.json.merge(CONFIG_FILE, values);
+	await context.codec.json.merge(await configPath(context), values);
+};
+
+export const mergeSection = async (context: Bridge.Context, section: string, values: Bridge.Values) => {
+	const path = await configPath(context);
+	const raw = (await context.files.exists(path)) ? await context.files.read(path) : "";
+	const parsed: unknown = raw.trim().length === 0 ? {} : JSON.parse(raw);
+	const document =
+		parsed === null || typeof parsed !== "object" || Array.isArray(parsed) ? {} : (parsed as Record<string, unknown>);
+	const existing = document[section];
+	const current = existing !== null && typeof existing === "object" && !Array.isArray(existing) ? existing : {};
+
+	await context.files.write(
+		path,
+		`${JSON.stringify(
+			{
+				...document,
+				[section]: {
+					...current,
+					...values,
+				},
+			},
+			null,
+			2,
+		)}\n`,
+	);
 };
 
 export const maxPlayersOf = (config: Bridge.Values) => {

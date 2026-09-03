@@ -6,10 +6,10 @@ import {
 	BridgeIcon,
 	BridgeLayout,
 } from "@serverkgg/bridge";
-import { LOGIN_LOGOUT_ACTION, LOGIN_START_ACTION } from "../details";
+import { LOGIN_CANCEL_ACTION, LOGIN_LOGOUT_ACTION, LOGIN_START_ACTION } from "../details";
 import { ANNOUNCE_MESSAGE_LENGTH } from "../shared";
 
-const MAX_VIEW_RADIUS = 512;
+const MAX_VIEW_RADIUS = 32;
 
 const loginTab: Bridge.Tab = {
 	id: "login",
@@ -33,6 +33,13 @@ const loginTab: Bridge.Tab = {
 					label: {
 						ar: "ابدأ الدخول",
 						en: "Start login",
+					},
+				},
+				{
+					id: LOGIN_CANCEL_ACTION,
+					label: {
+						ar: "ألغِ الدخول",
+						en: "Cancel login",
 					},
 				},
 				{
@@ -126,16 +133,16 @@ const settingsTab: Bridge.Tab = {
 				},
 				{
 					key: "MaxViewRadius",
-					control: BridgeControl.Number,
+					control: BridgeControl.Slider,
 					label: {
-						ar: "أقصى مدى رؤية",
-						en: "Max view distance",
+						ar: "مدى الرؤية",
+						en: "View distance",
 					},
 					help: {
-						ar: "أكبر عامل يستهلك الرام. هايتيل تنصح بـ 384، وكل ما زاد يبي رام أكثر.",
-						en: "The biggest driver of RAM use. Hytale recommends 384 — the higher it goes, the more RAM you need.",
+						ar: "أكبر عامل يستهلك الرام. هايتيل تنصح ما تتجاوز 12، وكل ما زاد يبي رام أكثر.",
+						en: "The biggest driver of RAM use. Hytale recommends staying at or below 12 — the higher it goes, the more RAM you need.",
 					},
-					min: 32,
+					min: 1,
 					max: MAX_VIEW_RADIUS,
 				},
 			],

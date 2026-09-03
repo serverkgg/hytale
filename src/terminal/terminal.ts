@@ -56,12 +56,55 @@ const commands: Bridge.TerminalCommand[] = [
 		},
 	},
 	{
+		name: "/auth cancel",
+		summary: {
+			ar: "يلغي عملية تسجيل دخول شغّالة.",
+			en: "Cancel a login that is still waiting.",
+		},
+	},
+	{
 		name: "/auth logout",
 		summary: {
 			ar: "يمسح تسجيل دخول سيرفرك.",
 			en: "Clear the server's sign-in.",
 		},
 		danger: true,
+	},
+	{
+		name: "/update status",
+		summary: {
+			ar: "يعرض نسخة سيرفرك وحالة التحديث.",
+			en: "Show the server version and the update state.",
+		},
+	},
+	{
+		name: "/update check",
+		summary: {
+			ar: "يسأل هايتيل إذا فيه نسخة جديدة.",
+			en: "Ask Hytale whether a newer version shipped.",
+		},
+	},
+	{
+		name: "/update download",
+		summary: {
+			ar: "ينزّل النسخة الجديدة ويجهزها للتركيب.",
+			en: "Download the new version and stage it.",
+		},
+	},
+	{
+		name: "/update apply --confirm",
+		summary: {
+			ar: "يركّب النسخة المجهّزة ويعيد تشغيل السيرفر.",
+			en: "Apply the staged version and restart the server.",
+		},
+		danger: true,
+	},
+	{
+		name: "/update cancel",
+		summary: {
+			ar: "يلغي تنزيل أو تركيب شغّال.",
+			en: "Cancel a running download or apply.",
+		},
 	},
 	{
 		name: "/whitelist enable",
@@ -156,11 +199,15 @@ const commands: Bridge.TerminalCommand[] = [
 
 const rules: Bridge.TerminalRule[] = [
 	{
-		match: /^\[[^\]]*\b(?:ERROR|SEVERE)\s*\]/,
+		match: /\[\d{4}\/\d{2}\/\d{2}[^\]]*\b(?:ERROR|SEVERE)\s*\]/,
 		level: BridgeTerminalLevel.Error,
 	},
 	{
-		match: /^\[[^\]]*\bWARN\w*\s*\]/,
+		match: /\[\d{4}\/\d{2}\/\d{2}[^\]]*\bWARN\w*\s*\]/,
+		level: BridgeTerminalLevel.Warn,
+	},
+	{
+		match: /^WARNING: /,
 		level: BridgeTerminalLevel.Warn,
 	},
 	{

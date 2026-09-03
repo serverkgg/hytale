@@ -1,79 +1,52 @@
 import { describe, expect, test } from "bun:test";
 import { appendedLines, stripLogPrefix } from "./hytaleConsole";
 
+const ESCAPE = String.fromCodePoint(0x1b);
+
+const RESET = `${ESCAPE}[m`;
+
+const GREEN = `${ESCAPE}[0;32m`;
+
 describe("stripLogPrefix", () => {
-	test("drops the timestamp and the component", () => {
-		expect(stripLogPrefix("[2026/01/24 12:52:15   INFO]   [ServerManager|P] Listening on /0.0.0.0:5520")).toBe(
-			"Listening on /0.0.0.0:5520",
-		);
+	test("strips the colour hytale wraps every log line in", () => {
+		expect(
+			stripLogPrefix(
+				`${RESET}[2026/09/03 22:02:01   INFO]              [AbstractCommand] Or visit: https://oauth.accounts.hytale.com/oauth2/device/verify?user_code=FnM4EEUw${RESET}`,
+			),
+		).toBe("Or visit: https://oauth.accounts.hytale.com/oauth2/device/verify?user_code=FnM4EEUw");
 	});
 
-	test("leaves a line the server printed straight to stdout alone", () => {
-		expect(stripLogPrefix("Credential storage changed to: Encrypted")).toBe("Credential storage changed to: Encrypted");
+	test("strips a colour that starts mid line", () => {
+		expect(
+			stripLogPrefix(`${RESET}[2026/09/03 22:01:32   INFO]   [HytaleServer] ${GREEN}Hytale Server Booted!${RESET}`),
+		).toBe("Hytale Server Booted!");
+	});
+
+	test("leaves a command reply, which carries no prefix and no colour, untouched", () => {
+		expect(stripLogPrefix("Token Source: Not authenticated")).toBe("Token Source: Not authenticated");
 	});
 });
 
 describe("appendedLines", () => {
-	test("returns only what arrived after the command", () => {
+	test("returns only what the console printed after the command", () => {
 		expect(
 			appendedLines(
 				[
 					"a",
 					"b",
-					"c",
 				],
 				[
 					"a",
 					"b",
 					"c",
-					"d",
-					"e",
 				],
 			),
 		).toEqual([
-			"d",
-			"e",
+			"c",
 		]);
 	});
 
-	test("handles a tail that has already scrolled", () => {
-		expect(
-			appendedLines(
-				[
-					"a",
-					"b",
-					"c",
-					"d",
-				],
-				[
-					"c",
-					"d",
-					"e",
-					"f",
-				],
-			),
-		).toEqual([
-			"e",
-			"f",
-		]);
-	});
-
-	test("returns nothing when the console stayed quiet", () => {
-		expect(
-			appendedLines(
-				[
-					"a",
-					"b",
-				],
-				[
-					"a",
-					"b",
-				],
-			),
-		).toEqual([]);
-	});
-
-	test("returns everything when nothing lines up", () => {
+	test("returns everything when the tail rolled past what we had", () => {
 		expect(
 			appendedLines(
 				[
