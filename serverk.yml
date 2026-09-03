@@ -1,0 +1,158 @@
+# yaml-language-server: $schema=./serverk.schema.json
+schemaVersion: serverk.gg/v1
+kind: GamePackage
+
+metadata:
+  id: hytale
+  name:
+    ar: هايتيل
+    en: Hytale
+  description:
+    ar: سيرفر هايتيل — عالم مكعبات مفتوح، مغامرات، بناء، وقتال مع أصحابك. عالمك محفوظ على سيرفرك وشغّال 24 ساعة.
+    en: Hytale dedicated servers — an open block world of adventure, building and combat with your friends. Your world lives on your server and runs around the clock.
+  tagline:
+    ar: عالمك في هايتيل مع أصحابك — سيرفرك جاهز خلال دقيقة
+    en: Your Hytale world with your friends — your server, ready in a minute
+  category: sandbox
+  logo: assets/logo.webp
+  banner: assets/banner.webp
+
+resources:
+  minMemoryMb: 4096
+  recommendedMemoryMb: 8192
+  minDiskMb: 20480
+  playersPerMemoryGb: 4
+  maxRecommendedPlayers: 64
+
+container:
+  image: serverkgg/hytale
+  ports:
+    - key: game
+      containerPort: 5520
+      protocol: udp
+      name:
+        ar: هايتيل
+        en: Hytale
+      hint:
+        ar: من داخل اللعبة افتح Multiplayer ثم Direct Connect واكتب العنوان والمنفذ مع بعض زي ما هو.
+        en: In the game open Multiplayer then Direct Connect and type the address and port together, exactly as shown.
+      hostRange:
+        default: 5520
+        min: 5520
+        max: 5569
+
+secrets:
+  - key: HYTALE_DOWNLOADER_CREDENTIALS
+    required: true
+    description:
+      ar: محتوى ملف .hytale-downloader-credentials.json اللي تكتبه أداة تحميل هايتيل الرسمية بعد تسجيل دخول واحد بالجهاز على حساب هايتيل الخاص بسيرفرك. بدونه ما يقدر أي سيرفر ينزّل ملفات اللعبة.
+      en: The contents of .hytale-downloader-credentials.json, written by the official Hytale downloader after one device login on the Serverk-owned Hytale account. Without it no server can download the game files.
+
+backup:
+  only:
+    - universe/**
+    - config.json
+    - permissions.json
+    - whitelist.json
+    - bans.json
+    - mods/**
+
+reset:
+  keep:
+    - Server
+    - Assets.zip
+    - .hytale-downloader-credentials.json
+    - .serverk-install.json
+
+presence:
+  name: player
+  id: playerId
+
+files:
+  protected:
+    - Server
+    - Assets.zip
+    - .hytale-downloader-credentials.json
+    - .serverk-install.json
+    - auth.enc
+    - auth.key
+  notable:
+    - match: config.json
+      label:
+        ar: إعدادات
+        en: Settings
+      icon: settings
+      color: "#5ba32b"
+      restart: true
+      note:
+        ar: إعدادات السيرفر كاملة — الاسم، الرسالة الترحيبية، كلمة المرور، وعدد اللاعبين. عدّلها من تبويب الإعدادات أحسن، وأي تعديل يبي إعادة تشغيل.
+        en: Every server setting — name, MOTD, password and player slots. The Settings tab is the easier way, and any change needs a restart.
+    - match: universe
+      label:
+        ar: بيانات العالم
+        en: World data
+      icon: map
+      color: "#4a8fd4"
+      note:
+        ar: عوالمك وبيانات اللاعبين. لا تعدّل عليه والسيرفر شغّال، وخذ نسخة احتياطية قبل أي شي.
+        en: Your worlds and the player data. Do not touch it while the server runs, and take a backup first.
+    - match: mods
+      label:
+        ar: المودات
+        en: Mods
+      icon: puzzle
+      color: "#c77dff"
+      restart: true
+      note:
+        ar: مجلد المودات. حط ملفات المود هنا وأعد التشغيل عشان تشتغل، ولازم كل اللاعبين يكون عندهم نفس المودات.
+        en: Your mods folder. Drop mod files here and restart for them to load — every player needs the same mods.
+    - match: whitelist.json
+      label:
+        ar: القائمة البيضاء
+        en: Whitelist
+      icon: shield
+      color: "#f2a33c"
+      note:
+        ar: أسماء اللي مسموح لهم يدخلون لما تفعّل القائمة البيضاء. الأسهل تديرها من تبويب التحكم.
+        en: Who may join while the whitelist is on. The Controls tab is the easier way to manage it.
+
+guideTags:
+  - id: start
+    name:
+      ar: ابدأ من هنا
+      en: Start here
+  - id: updates
+    name:
+      ar: التحديثات
+      en: Updates
+
+guides:
+  - id: getting-started
+    title:
+      ar: البدء بسيرفرك
+      en: Getting started
+    summary:
+      ar: أنشئ سيرفر هايتيل، سجّل دخوله مرة وحدة، وادخل مع أصحابك.
+      en: Create your Hytale server, sign it in once, and join with your friends.
+    tags:
+      - start
+    surfaces:
+      - overview
+    bodyPath:
+      ar: guides/getting-started/ar.md
+      en: guides/getting-started/en.md
+  - id: updates
+    title:
+      ar: تحديثات هايتيل
+      en: Hytale updates
+    summary:
+      ar: ليش سيرفرك يحدّث نفسه كل ما يشتغل، ووش يصير لما تنزل نسخة جديدة من اللعبة.
+      en: Why your server updates itself on every boot, and what happens when a new game version ships.
+    tags:
+      - updates
+    surfaces:
+      - overview
+      - console
+    bodyPath:
+      ar: guides/updates/ar.md
+      en: guides/updates/en.md
