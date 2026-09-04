@@ -1,4 +1,4 @@
-import type { Bridge } from "@serverkgg/bridge";
+import { type Bridge, BridgeUserError } from "@serverkgg/bridge";
 import { consoleOutput } from "./hytaleConsole";
 
 export const AUTH_STATUS_COMMAND = "/auth status";
@@ -129,7 +129,10 @@ export const startDeviceLogin = async (context: Bridge.Context): Promise<HytaleD
 	);
 
 	if (device === null) {
-		throw new Error("hytale did not print a device code, open the console tab to read what it answered");
+		throw new BridgeUserError({
+			ar: "هايتيل ما طبع رمز الدخول. افتح تبويب الكونسول عشان تشوف وش رد، وجرّب مرة ثانية.",
+			en: "Hytale printed no device code. Open the console tab to read what it answered, then try again.",
+		});
 	}
 
 	return device;

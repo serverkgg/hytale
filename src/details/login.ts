@@ -88,29 +88,45 @@ const VERIFY_LINK: Bridge.Text = {
 	en: "Open the verification page",
 };
 
-const SUBTITLE_SIGNED_IN = "مسجّل الدخول — Signed in";
+const SUBTITLE_SIGNED_IN: Bridge.Text = {
+	ar: "مسجّل الدخول",
+	en: "Signed in",
+};
 
-const SUBTITLE_SIGNED_OUT = "يحتاج تسجيل دخول — Needs a sign-in";
+const SUBTITLE_SIGNED_OUT: Bridge.Text = {
+	ar: "يحتاج تسجيل دخول",
+	en: "Needs a sign-in",
+};
 
-const NEXT_SETUP = [
-	"اضغط «ابدأ الدخول»، سجّل دخول بحساب هايتيل حقك، وبعدها سيرفرك ينزّل ملفات اللعبة ويشتغل لحاله.",
-	"Press Start login, sign in with your own Hytale account, and your server then downloads the game files and comes up on its own.",
-].join("\n\n");
+const STAGE_SERVER: Bridge.Text = {
+	ar: "السيرفر",
+	en: "Server",
+};
 
-const NEXT_PENDING = [
-	"افتح الرابط تحت في المتصفح، سجّل دخول بحساب هايتيل، والصق الرمز. لا تسكّر اللوحة.",
-	"Open the link below in your browser, sign in with your Hytale account, and enter the code. Keep this page open.",
-].join("\n\n");
+const STAGE_SETUP: Bridge.Text = {
+	ar: "التركيب",
+	en: "Setup",
+};
 
-const NEXT_DOWNLOADING = [
-	"سيرفرك سجّل دخوله وبدأ ينزّل ملفات اللعبة. العملية تاخذ شوي — تابعها من الكونسول، وبعدها يشتغل لحاله.",
-	"Your server signed in and started downloading the game files. It takes a while — watch the console, then it starts on its own.",
-].join("\n\n");
+const NEXT_SETUP: Bridge.Text = {
+	ar: "اضغط «ابدأ الدخول»، سجّل دخول بحساب هايتيل حقك، وبعدها سيرفرك ينزّل ملفات اللعبة ويشتغل لحاله.",
+	en: "Press Start login, sign in with your own Hytale account, and your server then downloads the game files and comes up on its own.",
+};
 
-const NEXT_SIGNED_OUT = [
-	"سيرفرك مركّب بس مسجّل خروج، وما يستقبل لاعبين. اضغط «ابدأ الدخول» عشان يرجع.",
-	"Your server is installed but signed out, so it takes no players. Press Start login to bring it back.",
-].join("\n\n");
+const NEXT_PENDING: Bridge.Text = {
+	ar: "افتح الرابط تحت في المتصفح، سجّل دخول بحساب هايتيل، والصق الرمز. لا تسكّر اللوحة.",
+	en: "Open the link below in your browser, sign in with your Hytale account, and enter the code. Keep this page open.",
+};
+
+const NEXT_DOWNLOADING: Bridge.Text = {
+	ar: "سيرفرك سجّل دخوله وبدأ ينزّل ملفات اللعبة. العملية تاخذ شوي، تابعها من الكونسول، وبعدها يشتغل لحاله.",
+	en: "Your server signed in and started downloading the game files. It takes a while — watch the console, then it starts on its own.",
+};
+
+const NEXT_SIGNED_OUT: Bridge.Text = {
+	ar: "سيرفرك مركّب بس مسجّل خروج، وما يستقبل لاعبين. اضغط «ابدأ الدخول» عشان يرجع.",
+	en: "Your server is installed but signed out, so it takes no players. Press Start login to bring it back.",
+};
 
 interface PendingLogin extends HytaleDeviceCode {
 	expiresAt: number;
@@ -176,7 +192,7 @@ const statsOf = (stage: HytaleStage, report: HytaleAuthReport, waiting: PendingL
 				ar: "المرحلة",
 				en: "Stage",
 			},
-			value: stage === HytaleStage.Server ? "الخادم — Server" : "التركيب — Setup",
+			value: stage === HytaleStage.Server ? STAGE_SERVER : STAGE_SETUP,
 			format: BridgeDetailFormat.Text,
 		},
 		...(waiting === null

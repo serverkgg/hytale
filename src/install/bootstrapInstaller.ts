@@ -1,4 +1,4 @@
-import type { Bridge } from "@serverkgg/bridge";
+import { type Bridge, BridgeUserError } from "@serverkgg/bridge";
 import {
 	BOOTSTRAP_JAR,
 	digestUrl,
@@ -14,10 +14,10 @@ const DOWNLOAD_TIMEOUT_MS = 900_000;
 
 const METADATA_TIMEOUT_MS = 30_000;
 
-export const UNREACHABLE = [
-	"ما قدرنا نوصل لسيرفرات هايتيل عشان ننزّل مثبّت السيرفر. جرّب تشغّل سيرفرك مرة ثانية بعد شوي.",
-	"we could not reach hytale to download the server installer. Start your server again in a moment.",
-].join(" — ");
+export const UNREACHABLE: Bridge.Text = {
+	ar: "ما قدرنا نوصل لسيرفرات هايتيل عشان ننزّل مثبّت السيرفر. جرّب تشغّل سيرفرك مرة ثانية بعد شوي.",
+	en: "We could not reach Hytale to download the server installer. Start your server again in a moment.",
+};
 
 export const latestRelease = async (context: Bridge.Context) => {
 	const metadata = parseMavenMetadata(
@@ -29,7 +29,9 @@ export const latestRelease = async (context: Bridge.Context) => {
 	);
 
 	if (metadata.release === null) {
-		throw new Error(`${UNREACHABLE} — maven listed no server release`);
+		context.log.warn("hytale maven listed no server release");
+
+		throw new BridgeUserError(UNREACHABLE);
 	}
 
 	return metadata.release;

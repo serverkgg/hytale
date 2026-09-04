@@ -1,4 +1,4 @@
-import type { Bridge } from "@serverkgg/bridge";
+import { type Bridge, BridgeUserError } from "@serverkgg/bridge";
 
 const SPACING = /\s+/g;
 
@@ -32,7 +32,10 @@ export const messageArgument = (args: Bridge.Values) => {
 	const message = sanitizeMessage(String(args.message ?? ""));
 
 	if (message.length === 0) {
-		throw new Error("اكتب الرسالة أول — write the message first");
+		throw new BridgeUserError({
+			ar: "اكتب الرسالة أول.",
+			en: "Write the message first.",
+		});
 	}
 
 	return message.slice(0, ANNOUNCE_MESSAGE_LENGTH);
@@ -48,7 +51,10 @@ export const usernameArgument = (raw: string) => {
 	const username = raw.trim();
 
 	if (!/^[A-Za-z0-9_.-]{1,32}$/.test(username)) {
-		throw new Error(`"${username}" ما يشبه اسم لاعب — that is not a player name`);
+		throw new BridgeUserError({
+			ar: `"${username}" ما يشبه اسم لاعب.`,
+			en: `"${username}" is not a player name.`,
+		});
 	}
 
 	return username;

@@ -46,15 +46,17 @@ describe("badgesOf", () => {
 
 describe("nextStep", () => {
 	test("tells a fresh server to sign in", () => {
-		expect(nextStep(HytaleStage.Bootstrap, HytaleAuthState.SignedOut, false)).toContain("Press Start login");
+		expect(nextStep(HytaleStage.Bootstrap, HytaleAuthState.SignedOut, false)?.en).toContain("Press Start login");
 	});
 
 	test("tells a waiting server to open the link", () => {
-		expect(nextStep(HytaleStage.Bootstrap, HytaleAuthState.SignedOut, true)).toContain("Open the link below");
+		expect(nextStep(HytaleStage.Bootstrap, HytaleAuthState.SignedOut, true)?.en).toContain("Open the link below");
 	});
 
 	test("tells a signed-in bootstrap server to wait for the download", () => {
-		expect(nextStep(HytaleStage.Bootstrap, HytaleAuthState.SignedIn, false)).toContain("downloading the game files");
+		expect(nextStep(HytaleStage.Bootstrap, HytaleAuthState.SignedIn, false)?.en).toContain(
+			"downloading the game files",
+		);
 	});
 
 	test("has nothing left to say once the server is installed and signed in", () => {
@@ -62,6 +64,13 @@ describe("nextStep", () => {
 	});
 
 	test("tells an installed but signed-out server to sign back in", () => {
-		expect(nextStep(HytaleStage.Server, HytaleAuthState.SignedOut, false)).toContain("installed but signed out");
+		expect(nextStep(HytaleStage.Server, HytaleAuthState.SignedOut, false)?.en).toContain("installed but signed out");
+	});
+
+	test("never joins the two languages into one sentence", () => {
+		const step = nextStep(HytaleStage.Bootstrap, HytaleAuthState.SignedOut, false);
+
+		expect(step?.ar).not.toMatch(/[A-Za-z]{3}/);
+		expect(step?.en).not.toMatch(/\p{Script=Arabic}/u);
 	});
 });
