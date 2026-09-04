@@ -1,8 +1,10 @@
 ## Why your server updates itself
 
-Hytale locks the client and the server to the same version: a player on a newer build cannot join an older server. So your server asks Hytale every hour whether a new version shipped, downloads it in the background, and applies it **the moment the server is empty**.
+Hytale locks the client and the server to the same version: a player on a newer build cannot join an older server. So your server asks Hytale every hour whether a new version shipped, downloads it in the background, warns the players who are online, and applies it **15 minutes later**, on time, whether or not someone is still inside.
 
-Most of the time that means you do nothing at all: the update arrives on its own, and nobody is cut off mid-session.
+Most of the time that means you do nothing at all: the update arrives on its own, and your players get a countdown instead of a locked door. If it lands mid-session, the world is saved first and the server is back within seconds.
+
+> [!note] Why not wait until the server is empty? Because one player who never leaves would lock everyone else out: anyone whose game already updated cannot join until the server updates too.
 
 > [!note] Before any update your server takes its own snapshot of the world and the config, on top of the backups we keep for you.
 
@@ -10,7 +12,7 @@ Most of the time that means you do nothing at all: the update arrives on its own
 
 1. The server notices a new version and tells the players who are online
 2. It downloads it in the background without stopping
-3. As soon as the last player leaves, it applies it and comes back in seconds
+3. It warns the players that the update lands in 15 minutes, saves the world, applies it, and comes back in seconds
 
 @[open](console)
 
@@ -42,7 +44,7 @@ Everything is available from the console:
 
 @[command](/update download)
 
-Then `/update apply --confirm` installs the staged version and restarts right away.
+Then `/update apply --confirm` installs the staged version and restarts right away, without the 15-minute countdown.
 
 ## If an update fails
 

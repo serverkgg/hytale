@@ -6,11 +6,15 @@ import {
 	HytaleStage,
 	heapArguments,
 	SERVER_READY,
+	SERVER_STOPPED,
 	START_SCRIPT,
 	STOP_COMMAND,
+	UPDATER_BACKUP_DIRECTORY,
 } from "../shared";
 
 const STOP_TIMEOUT_SECONDS = 120;
+
+const STOP_REPLY_TIMEOUT_MS = 60_000;
 
 const AUTH_MODE = "authenticated";
 
@@ -23,7 +27,6 @@ export const bootstrapArguments = (memoryMb: number) => {
 		"-jar",
 		BOOTSTRAP_JAR,
 		"--bootstrap",
-		"--disable-sentry",
 	];
 };
 
@@ -35,8 +38,29 @@ export const serverArguments = (port: number) => {
 		`0.0.0.0:${port}`,
 		"--auth-mode",
 		AUTH_MODE,
-		"--disable-sentry",
 	];
+};
+
+const stampBootedVersion = async (context: Bridge.Context) => {
+	for (const line of (await context.logs.tail(BOOT_LINES)).toReversed()) {
+		const version = bootedVersion(line);
+
+		if (version !== null) {
+			await stampVersion(context, version);
+
+			return;
+		}
+	}
+};
+
+const pruneUpdaterBackup = async (context: Bridge.Context) => {
+	if (!(await context.files.exists(UPDATER_BACKUP_DIRECTORY))) {
+		return;
+	}
+
+	await context.files.remove(UPDATER_BACKUP_DIRECTORY);
+
+	context.log("the updated server booted, dropped the previous files the updater kept for a rollback");
 };
 
 export const lifecycle: Bridge.Lifecycle = {
@@ -53,17 +77,13 @@ export const lifecycle: Bridge.Lifecycle = {
 	async stop(context) {
 		context.emit("ServerStopping");
 
-		await context.command(STOP_COMMAND);
+		await context.command(STOP_COMMAND, {
+			expect: SERVER_STOPPED,
+			timeoutMs: STOP_REPLY_TIMEOUT_MS,
+		});
 	},
 	async onReady(context) {
-		for (const line of (await context.logs.tail(BOOT_LINES)).toReversed()) {
-			const version = bootedVersion(line);
-
-			if (version !== null) {
-				await stampVersion(context, version);
-
-				return;
-			}
-		}
+		await stampBootedVersion(context);
+		await pruneUpdaterBackup(context);
 	},
 };

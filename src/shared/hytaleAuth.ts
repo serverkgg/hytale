@@ -17,7 +17,7 @@ export const AUTH_SUCCEEDED = /Authentication successful/;
 
 export const VERIFY_URL = /(?<url>https:\/\/\S*device\S*[?&]user_code=(?<code>[A-Za-z0-9][A-Za-z0-9-]{3,31}))/;
 
-export const DEFAULT_DEVICE_CODE_TTL_SECONDS = 599;
+export const DEFAULT_DEVICE_CODE_TTL_SECONDS = 900;
 
 const DEVICE_SETTLE_MS = 1200;
 

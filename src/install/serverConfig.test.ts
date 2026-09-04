@@ -2,8 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { backupValues, missingValues, seedValues, updateValues } from "./serverConfig";
 
 describe("updateValues", () => {
-	test("applies an update the moment the server is empty, because the client must match the server", () => {
-		expect(updateValues().AutoApplyMode).toBe("WhenEmpty");
+	test("applies an update on a schedule, because one player who never leaves must not lock everyone else out", () => {
+		expect(updateValues().AutoApplyMode).toBe("Scheduled");
+		expect(updateValues().AutoApplyDelayMinutes).toBe(15);
 		expect(updateValues().Enabled).toBe(true);
 	});
 
@@ -19,9 +20,9 @@ describe("updateValues", () => {
 });
 
 describe("backupValues", () => {
-	test("caps the snapshots the server keeps for itself, so they cannot fill the disk", () => {
-		expect(backupValues().MaxCount).toBe(3);
-		expect(backupValues().ArchiveMaxCount).toBe(3);
+	test("keeps the server's own snapshots small, because the platform's backups are the ones a player restores from", () => {
+		expect(backupValues().MaxCount).toBe(2);
+		expect(backupValues().ArchiveMaxCount).toBe(1);
 	});
 });
 

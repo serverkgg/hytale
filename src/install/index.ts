@@ -1,3 +1,4 @@
+export * from "./authKey";
 export * from "./bootstrapInstaller";
 export * from "./install";
 export * from "./installStamp";

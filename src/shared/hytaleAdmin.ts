@@ -79,3 +79,7 @@ export const setWhitelist = async (context: Bridge.Context, enabled: boolean) =>
 export const allowPlayer = async (context: Bridge.Context, username: string) => {
 	await context.command(`${WHITELIST_ADD_COMMAND} ${usernameArgument(username)}`);
 };
+
+export const disallowPlayer = async (context: Bridge.Context, username: string) => {
+	await context.command(`${WHITELIST_REMOVE_COMMAND} ${usernameArgument(username)}`);
+};

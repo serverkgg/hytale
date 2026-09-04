@@ -1,5 +1,13 @@
 import { type Bridge, BridgeKind } from "@serverkgg/bridge";
-import { allowPlayer, booleanArgument, messageArgument, sendSay, setWhitelist, usernameArgument } from "../shared";
+import {
+	allowPlayer,
+	booleanArgument,
+	disallowPlayer,
+	messageArgument,
+	sendSay,
+	setWhitelist,
+	usernameArgument,
+} from "../shared";
 
 export const live: Bridge.Actions = {
 	kind: BridgeKind.Actions,
@@ -15,6 +23,10 @@ export const live: Bridge.Actions = {
 
 		async allow(context, args) {
 			await allowPlayer(context, usernameArgument(String(args.username ?? "")));
+		},
+
+		async disallow(context, args) {
+			await disallowPlayer(context, usernameArgument(String(args.username ?? "")));
 		},
 	},
 };

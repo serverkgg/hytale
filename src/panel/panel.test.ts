@@ -109,10 +109,26 @@ describe("the fields the panel renders for hytale settings", () => {
 		}
 	});
 
-	test("gives every field a unique key, so one setting cannot shadow another", () => {
-		const keys = fields.map((field) => field.key);
+	test("gives every field a unique key within its form or action, so one setting cannot shadow another", () => {
+		const scopes = sections.flatMap((section) => {
+			if (section.layout === BridgeLayout.Form) {
+				return [
+					section.fields,
+				];
+			}
 
-		expect(new Set(keys).size).toBe(keys.length);
+			if (section.layout === BridgeLayout.Actions || section.layout === BridgeLayout.Detail) {
+				return (section.actions ?? []).map((action) => action.fields ?? []);
+			}
+
+			return [];
+		});
+
+		for (const scope of scopes) {
+			const keys = scope.map((field) => field.key);
+
+			expect(new Set(keys).size).toBe(keys.length);
+		}
 	});
 
 	test("keeps every range the right way round", () => {

@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { bootedVersion, heapFor, initialHeapFor, jvmOptions, SERVER_READY } from "../shared";
+import { bootedVersion, heapFor, initialHeapFor, jvmOptions, SERVER_READY, SERVER_STOPPED } from "../shared";
 import { bootstrapArguments, serverArguments } from "./lifecycle";
+
+const ESCAPE = String.fromCodePoint(0x1b);
 
 describe("heapFor", () => {
 	test("leaves headroom for the jvm itself", () => {
@@ -29,6 +31,10 @@ describe("jvmOptions", () => {
 		]);
 	});
 
+	test("points the aot cache at the file beside the jar, because start.sh runs java from Server/", () => {
+		expect(jvmOptions(4096)).toContain("-XX:AOTCache=HytaleServer.aot");
+	});
+
 	test("never emits an argument with a space in it, because start.sh reads the file line by line", () => {
 		for (const option of jvmOptions(8192)) {
 			expect(option).not.toContain(" ");
@@ -46,7 +52,6 @@ describe("bootstrapArguments", () => {
 			"-jar",
 			"HytaleServer.jar",
 			"--bootstrap",
-			"--disable-sentry",
 		]);
 	});
 });
@@ -60,7 +65,6 @@ describe("serverArguments", () => {
 			"0.0.0.0:5523",
 			"--auth-mode",
 			"authenticated",
-			"--disable-sentry",
 		]);
 	});
 
@@ -70,6 +74,11 @@ describe("serverArguments", () => {
 		expect(argv).not.toContain("--assets");
 		expect(argv.some((argument) => argument.startsWith("-Xmx"))).toBe(false);
 	});
+
+	test("leaves sentry on, because the manual only asks for it off during plugin development", () => {
+		expect(serverArguments(5520)).not.toContain("--disable-sentry");
+		expect(bootstrapArguments(4096)).not.toContain("--disable-sentry");
+	});
 });
 
 describe("SERVER_READY", () => {
@@ -77,6 +86,14 @@ describe("SERVER_READY", () => {
 		expect(
 			SERVER_READY.test(
 				"[2026/09/03 22:01:32   INFO]   [HytaleServer]   Hytale Server Booted! [Multiplayer, Fresh Universe] took 972ms",
+			),
+		).toBe(true);
+	});
+
+	test("fires on the same banner in bootstrap mode, where the server binds no port and colours the line", () => {
+		expect(
+			SERVER_READY.test(
+				`${ESCAPE}[m[2026/09/03 22:01:32   INFO]                 [HytaleServer] ${ESCAPE}[0;32m         Hytale Server Booted! [Multiplayer, Fresh Universe] took 972ms 620us 128ns${ESCAPE}[m`,
 			),
 		).toBe(true);
 	});
@@ -95,6 +112,17 @@ describe("SERVER_READY", () => {
 				"[2026/09/03 21:57:07   INFO]   [HytaleServer] Booting up HytaleServer - Version: 0.6.3, Revision: ff802bf5",
 			),
 		).toBe(false);
+	});
+});
+
+describe("SERVER_STOPPED", () => {
+	test("fires once the server has saved and finished shutting down", () => {
+		expect(SERVER_STOPPED.test("[2026/09/03 22:02:50   INFO]   [HytaleServer] Shutdown completed!")).toBe(true);
+	});
+
+	test("does not fire on the lines printed while it is still saving", () => {
+		expect(SERVER_STOPPED.test("[2026/09/03 22:02:50   INFO]   [HytaleServer] Shutdown triggered!!!")).toBe(false);
+		expect(SERVER_STOPPED.test("[2026/09/03 22:02:50   INFO]   [HytaleServer] Shutting down... 0  'null'")).toBe(false);
 	});
 });
 

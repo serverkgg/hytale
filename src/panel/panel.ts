@@ -290,6 +290,28 @@ const controlsTab: Bridge.Tab = {
 						},
 					],
 				},
+				{
+					id: "disallow",
+					label: {
+						ar: "شِل من القائمة البيضاء",
+						en: "Remove from whitelist",
+					},
+					fields: [
+						{
+							key: "username",
+							control: BridgeControl.Text,
+							label: {
+								ar: "اسم حساب اللاعب",
+								en: "Player account name",
+							},
+							help: {
+								ar: "إذا كان اللاعب داخل الحين، يطلع بعد إعادة التشغيل الجاية.",
+								en: "If the player is online right now, they are out after the next restart.",
+							},
+							maxLength: 32,
+						},
+					],
+				},
 			],
 		},
 	],

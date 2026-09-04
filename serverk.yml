@@ -46,11 +46,14 @@ backup:
     - Server/universe/**
     - Server/config.json
     - Server/permissions.json
-    - Server/whitelist.json
     - Server/bans.json
     - Server/mods/**
+    - Server/auth.enc
+    - Server/auth.key
     - config.json
     - permissions.json
+    - auth.enc
+    - auth.key
     - .serverk-install.json
 
 reset:
@@ -64,6 +67,8 @@ reset:
     - Server/Licenses
     - Server/auth.enc
     - Server/auth.key
+    - auth.enc
+    - auth.key
     - .serverk-install.json
 
 presence:
@@ -116,15 +121,16 @@ files:
       note:
         ar: مجلد المودات. حط ملفات المود هنا وأعد التشغيل عشان تشتغل، ولازم كل اللاعبين يكون عندهم نفس المودات.
         en: Your mods folder. Drop mod files here and restart for them to load — every player needs the same mods.
-    - match: Server/whitelist.json
+    - match: Server/permissions.json
       label:
-        ar: القائمة البيضاء
-        en: Whitelist
+        ar: الصلاحيات والقائمة البيضاء
+        en: Permissions and whitelist
       icon: shield
       color: "#f2a33c"
+      restart: true
       note:
-        ar: أسماء اللي مسموح لهم يدخلون لما تفعّل القائمة البيضاء. الأسهل تديرها من تبويب التحكم.
-        en: Who may join while the whitelist is on. The Controls tab is the easier way to manage it.
+        ar: صلاحيات اللاعبين، والقائمة البيضاء معها — اللي عنده صلاحية hytale.server.join يقدر يدخل لما تفعّلها. الأسهل تديرها من تبويب التحكم.
+        en: Player permissions, and the whitelist with them — whoever holds hytale.server.join may join while it is on. The Controls tab is the easier way to manage it.
     - match: Server/backups
       label:
         ar: نسخ السيرفر

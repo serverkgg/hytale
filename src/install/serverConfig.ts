@@ -1,5 +1,6 @@
 import type { Bridge } from "@serverkgg/bridge";
 import {
+	AUTH_KEY_FILE,
 	BACKUP_SECTION,
 	CONFIG_FILE,
 	JVM_OPTIONS_FILE,
@@ -9,18 +10,22 @@ import {
 	PATCHLINE,
 	PERMISSIONS_FILE,
 	readConfig,
+	SERVER_AUTH_KEY_FILE,
 	SERVER_DIRECTORY,
 	SERVER_PERMISSIONS_FILE,
 	UPDATE_SECTION,
 } from "../shared";
+import { ensureAuthKey } from "./authKey";
 
 const CHECK_INTERVAL_SECONDS = 3600;
 
-const AUTO_APPLY_DELAY_MINUTES = 30;
+const AUTO_APPLY_DELAY_MINUTES = 15;
 
-const AUTO_APPLY_WHEN_EMPTY = "WhenEmpty";
+const AUTO_APPLY_SCHEDULED = "Scheduled";
 
-const LOCAL_BACKUP_COUNT = 3;
+const LOCAL_BACKUP_COUNT = 2;
+
+const LOCAL_ARCHIVE_COUNT = 1;
 
 const RECOMMENDED_VIEW_RADIUS = 12;
 
@@ -42,7 +47,7 @@ export const updateValues = (): Bridge.Values => {
 		Patchline: PATCHLINE,
 		RunBackupBeforeUpdate: true,
 		BackupConfigBeforeUpdate: true,
-		AutoApplyMode: AUTO_APPLY_WHEN_EMPTY,
+		AutoApplyMode: AUTO_APPLY_SCHEDULED,
 		AutoApplyDelayMinutes: AUTO_APPLY_DELAY_MINUTES,
 	};
 };
@@ -50,7 +55,7 @@ export const updateValues = (): Bridge.Values => {
 export const backupValues = (): Bridge.Values => {
 	return {
 		MaxCount: LOCAL_BACKUP_COUNT,
-		ArchiveMaxCount: LOCAL_BACKUP_COUNT,
+		ArchiveMaxCount: LOCAL_ARCHIVE_COUNT,
 	};
 };
 
@@ -113,6 +118,7 @@ export const applyServerConfig = async (context: Bridge.Context) => {
 	await adoptMigrated(context, CONFIG_FILE);
 	await adoptMigrated(context, PERMISSIONS_FILE);
 	await seedPermissions(context, SERVER_PERMISSIONS_FILE);
+	await ensureAuthKey(context, SERVER_AUTH_KEY_FILE);
 
 	const seeds = missingValues(await readConfig(context), seedValues(context.server));
 
@@ -127,6 +133,7 @@ export const applyServerConfig = async (context: Bridge.Context) => {
 
 export const applyBootstrapConfig = async (context: Bridge.Context) => {
 	await seedPermissions(context, PERMISSIONS_FILE);
+	await ensureAuthKey(context, AUTH_KEY_FILE);
 
 	const seeds = missingValues(await readConfig(context), seedValues(context.server));
 

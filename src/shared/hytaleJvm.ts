@@ -1,3 +1,5 @@
+import { AOT_CACHE_FILE } from "./hytaleServer";
+
 const HEAP_FRACTION = 0.8;
 
 const HEAP_FLOOR_MB = 1024;
@@ -32,6 +34,7 @@ export const heapArguments = (memoryMb: number) => {
 export const jvmOptions = (memoryMb: number) => {
 	return [
 		...heapArguments(memoryMb),
+		`-XX:AOTCache=${AOT_CACHE_FILE}`,
 		"-XX:+UseG1GC",
 		"-XX:MaxGCPauseMillis=200",
 		"-XX:+ParallelRefProcEnabled",
