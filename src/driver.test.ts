@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { BridgeLayout } from "@serverkgg/bridge";
+import { BridgeLayout, BridgeSetupStepKind } from "@serverkgg/bridge";
+import { GuideOpenTab } from "@serverkgg/bridge/guides";
 import { driver } from "./driver";
 import { parseWho } from "./shared";
 
@@ -64,6 +65,93 @@ describe("wiring the players table to the roster the collection returns", () => 
 	});
 });
 
+const steps = driver.setup?.steps ?? [];
+
+const formSection = (tabId: string, sectionId: string) => {
+	const tab = (driver.panel?.tabs ?? []).find((entry) => entry.id === tabId);
+	const section = tab?.sections.find((entry) => entry.id === sectionId);
+
+	return section?.layout === BridgeLayout.Form ? section : null;
+};
+
+describe("walking the customer through the first run", () => {
+	test("asks for the sign-in and the download before anything optional", () => {
+		expect(steps.map((step) => step.id)).toEqual([
+			"sign-in",
+			"download",
+			"name",
+			"invite",
+		]);
+	});
+
+	test("drives the sign-in and the download from the driver itself", () => {
+		expect(steps.filter((step) => step.kind === BridgeSetupStepKind.Driver).map((step) => step.id)).toEqual([
+			"sign-in",
+			"download",
+		]);
+	});
+
+	test("needs a running server for the sign-in, because the code comes out of the console", () => {
+		const signIn = steps.find((step) => step.id === "sign-in");
+
+		expect(signIn?.kind === BridgeSetupStepKind.Driver && signIn.requiresRunning).toBe(true);
+	});
+
+	test("lets the customer skip only the two steps a server runs fine without", () => {
+		expect(steps.filter((step) => step.required === false).map((step) => step.id)).toEqual([
+			"name",
+			"invite",
+		]);
+	});
+
+	test("points the form step at a form section the panel really declares", () => {
+		for (const step of steps) {
+			if (step.kind !== BridgeSetupStepKind.Form) {
+				continue;
+			}
+
+			expect(formSection(step.tab, step.section)).not.toBeNull();
+		}
+	});
+
+	test("names only fields that section really carries", () => {
+		for (const step of steps) {
+			if (step.kind !== BridgeSetupStepKind.Form) {
+				continue;
+			}
+
+			const keys = (formSection(step.tab, step.section)?.fields ?? []).map((field) => field.key);
+
+			for (const key of step.fields ?? []) {
+				expect(keys).toContain(key);
+			}
+		}
+	});
+
+	test("sends the invite step to the access page, where the address lives", () => {
+		const invite = steps.find((step) => step.id === "invite");
+
+		expect(invite?.kind === BridgeSetupStepKind.Open && invite.target.tab).toBe(GuideOpenTab.Access);
+	});
+
+	test("titles and explains every step in both arabic and english", () => {
+		for (const step of steps) {
+			expect(step.title.ar.length).toBeGreaterThan(0);
+			expect(step.title.en.length).toBeGreaterThan(0);
+			expect(step.help?.ar.length).toBeGreaterThan(0);
+			expect(step.help?.en.length).toBeGreaterThan(0);
+		}
+	});
+
+	test("leaves the sign-in to the setup page, so the account detail no longer starts one", () => {
+		const account = sections.find((section) => section.id === "hytale-account");
+		const actions = (account?.layout === BridgeLayout.Detail ? (account.actions ?? []) : []).map((action) => action.id);
+
+		expect(actions).not.toContain("begin");
+		expect(actions).toContain("switch");
+	});
+});
+
 describe("assembling the hytale driver", () => {
 	test("registers every module the panel binds a section to", () => {
 		for (const section of sections) {
@@ -79,17 +167,23 @@ describe("assembling the hytale driver", () => {
 		expect(driver.events).toBeDefined();
 		expect(driver.query).toBeDefined();
 		expect(driver.announce).toBeDefined();
+		expect(driver.setup).toBeDefined();
 		expect(driver.terminal).toBeDefined();
 		expect(driver.panel).toBeDefined();
 	});
 
-	test("registers the settings, players, login and live modules the tabs reference", () => {
+	test("registers the settings, players, login, live and mods modules the tabs reference", () => {
 		expect(Object.keys(modules)).toEqual([
 			"settings",
 			"players",
 			"login",
 			"live",
+			"mods",
 		]);
+	});
+
+	test("keeps the setup singleton out of the panel modules, because its id is reserved", () => {
+		expect(Object.keys(modules)).not.toContain("setup");
 	});
 
 	test("emits only names the platform's event taxonomy knows", () => {

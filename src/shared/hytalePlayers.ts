@@ -3,14 +3,20 @@ import { consoleOutput } from "./hytaleConsole";
 
 export const WHO_COMMAND = "/who";
 
+export const WHO_WORLD = /^\S{1,64}\s*\(\d{1,4}\)\s*:\s*:\s*/;
+
+export const PLAYER_ENTRY = /(?<display>[^(),]{1,64}?)\s*\((?<username>[A-Za-z0-9_.-]{1,32})\)/g;
+
 export const PLAYER_LINE = /^(?<display>[^()]{1,64}?)\s*\((?<username>[A-Za-z0-9_.-]{1,32})\)$/;
 
 export const PLAYER_JOINED =
-	/\[World\|[^\]]*\] Player '(?<player>[^']{1,64})' joined world '[^']*'.*\((?<playerId>[^)]*)\)\s*$/;
+	/\[[^\]]*World\|[^\]]*\]\s*Player '(?<player>[^']{1,64})' joined world '[^']{0,64}'.*?\((?<playerId>[0-9a-fA-F-]{36})\)/;
 
-export const PLAYER_LEFT = /\[Universe[^\]]*\] Removing player '(?<player>[^']{1,64})' \((?<playerId>[^)]*)\)\s*$/;
+export const PLAYER_LEFT =
+	/\[[^\]]*Universe[^\]]*\]\s*Removing player '(?<player>[^'(]{1,64}?)'?\s+\((?<playerId>[0-9a-fA-F-]{36})\)/;
 
-export const PLAYER_DIED = /\[Gravestones[^\]]*\].*Created for (?<player>\S{1,64}) at \((?<location>[^)]*)\)\s*$/;
+export const PLAYER_DIED =
+	/\[[^\]]*Gravestones[^\]]*\].*?Created for (?<player>\S{1,64}) at \((?<location>[^)]{1,120})\)/;
 
 export const CHAT = /\[Hytale\] (?<player>[^:]{1,64}): (?<message>.{1,400})$/;
 
@@ -23,20 +29,35 @@ export const parseWho = (lines: string[]): HytaleRosterEntry[] => {
 	const roster: HytaleRosterEntry[] = [];
 	const seen = new Set<string>();
 
-	for (const line of lines) {
-		const groups = line.match(PLAYER_LINE)?.groups;
+	const take = (groups: Record<string, string | undefined> | undefined) => {
+		const username = groups?.username;
+		const name = groups?.display?.trim();
 
-		if (!groups?.username || !groups.display || seen.has(groups.username)) {
+		if (!username || !name || seen.has(username)) {
+			return;
+		}
+
+		seen.add(username);
+
+		roster.push({
+			id: username,
+			name,
+			username,
+		});
+	};
+
+	for (const line of lines) {
+		const world = line.match(WHO_WORLD);
+
+		if (world) {
+			for (const entry of line.slice(world[0].length).matchAll(PLAYER_ENTRY)) {
+				take(entry.groups);
+			}
+
 			continue;
 		}
 
-		seen.add(groups.username);
-
-		roster.push({
-			id: groups.username,
-			name: groups.display.trim(),
-			username: groups.username,
-		});
+		take(line.match(PLAYER_LINE)?.groups);
 	}
 
 	return roster;

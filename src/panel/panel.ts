@@ -6,16 +6,16 @@ import {
 	BridgeIcon,
 	BridgeLayout,
 } from "@serverkgg/bridge";
-import { LOGIN_CANCEL_ACTION, LOGIN_LOGOUT_ACTION, LOGIN_START_ACTION } from "../details";
+import { LOGIN_LOGOUT_ACTION, LOGIN_SWITCH_ACTION } from "../details";
 import { ANNOUNCE_MESSAGE_LENGTH } from "../shared";
 
 const MAX_VIEW_RADIUS = 32;
 
-const loginTab: Bridge.Tab = {
-	id: "login",
+const accountTab: Bridge.Tab = {
+	id: "account",
 	title: {
-		ar: "الدخول",
-		en: "Login",
+		ar: "الحساب",
+		en: "Account",
 	},
 	icon: BridgeIcon.Shield,
 	sections: [
@@ -23,23 +23,16 @@ const loginTab: Bridge.Tab = {
 			layout: BridgeLayout.Detail,
 			id: "hytale-account",
 			title: {
-				ar: "تسجيل دخول سيرفرك",
-				en: "Sign your server in",
+				ar: "حساب هايتيل المربوط بسيرفرك",
+				en: "The Hytale account your server uses",
 			},
 			module: "login",
 			actions: [
 				{
-					id: LOGIN_START_ACTION,
+					id: LOGIN_SWITCH_ACTION,
 					label: {
-						ar: "ابدأ الدخول",
-						en: "Start login",
-					},
-				},
-				{
-					id: LOGIN_CANCEL_ACTION,
-					label: {
-						ar: "ألغِ الدخول",
-						en: "Cancel login",
+						ar: "بدّل الحساب",
+						en: "Switch account",
 					},
 				},
 				{
@@ -56,8 +49,8 @@ const loginTab: Bridge.Tab = {
 				},
 			],
 			empty: {
-				ar: "شغّل سيرفرك أول عشان نقدر نقرأ حالة الدخول.",
-				en: "Start your server first so we can read its sign-in status.",
+				ar: "شغّل سيرفرك أول عشان نقدر نقرأ حالة الحساب.",
+				en: "Start your server first so we can read its account status.",
 			},
 		},
 	],
@@ -204,6 +197,27 @@ const playersTab: Bridge.Tab = {
 	],
 };
 
+const modsTab: Bridge.Tab = {
+	id: "mods",
+	title: {
+		ar: "المودات",
+		en: "Mods",
+	},
+	icon: BridgeIcon.Puzzle,
+	sections: [
+		{
+			layout: BridgeLayout.Catalog,
+			id: "mod-list",
+			module: "mods",
+			restartHint: true,
+			empty: {
+				ar: "ما ركّبت أي مودات بعد. دوّر على واحد فوق وركّبه — اللاعبين ما يركّبون شي عندهم، سيرفرك يوصّل لهم المود أول ما يدخلون.",
+				en: "No mods installed yet. Search for one above and install it — your players install nothing, your server hands them the mod as they join.",
+			},
+		},
+	],
+};
+
 const controlsTab: Bridge.Tab = {
 	id: "controls",
 	title: {
@@ -319,9 +333,10 @@ const controlsTab: Bridge.Tab = {
 
 export const panel: Bridge.Panel = {
 	tabs: [
-		loginTab,
+		accountTab,
 		settingsTab,
 		playersTab,
+		modsTab,
 		controlsTab,
 	],
 };

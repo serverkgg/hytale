@@ -48,7 +48,7 @@ Then `/update apply --confirm` installs the staged version and restarts right aw
 
 ## If an update fails
 
-- Check that your server is signed in, from the Login tab — an update needs a signed-in account
+- Check that your server is signed in, from the Account tab — an update needs a signed-in account
 - Read the console tab: any download error is printed there in full
 - Restart once more — most download failures are temporary
 - If it keeps failing, open a support ticket and we will look at it with you

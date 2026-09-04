@@ -6,9 +6,11 @@ import { login } from "./details";
 import { events } from "./events";
 import { install } from "./install";
 import { lifecycle } from "./lifecycle";
+import { mods } from "./mods";
 import { panel } from "./panel";
 import { query } from "./query";
 import { settings } from "./settings";
+import { setup } from "./setup";
 import { terminal } from "./terminal";
 
 export const driver: BridgeDriver = {
@@ -17,6 +19,7 @@ export const driver: BridgeDriver = {
 	events,
 	query,
 	announce,
+	setup,
 	terminal,
 	panel,
 	modules: {
@@ -24,5 +27,6 @@ export const driver: BridgeDriver = {
 		players,
 		login,
 		live,
+		mods,
 	},
 };

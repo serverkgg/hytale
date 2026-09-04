@@ -1,5 +1,6 @@
 import { type Bridge, BridgeKind } from "@serverkgg/bridge";
 import { prepareStage, stampVersion } from "../install";
+import { advanceSetup } from "../setup";
 import {
 	BOOTSTRAP_JAR,
 	bootedVersion,
@@ -85,5 +86,6 @@ export const lifecycle: Bridge.Lifecycle = {
 	async onReady(context) {
 		await stampBootedVersion(context);
 		await pruneUpdaterBackup(context);
+		await advanceSetup(context);
 	},
 };

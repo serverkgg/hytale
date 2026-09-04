@@ -70,8 +70,8 @@ describe("laying out the hytale panel", () => {
 		}
 	});
 
-	test("opens on the login tab, because a server that never signed in takes no players", () => {
-		expect(panel.tabs.at(0)?.id).toBe("login");
+	test("opens on the account tab, because a server that is signed out takes no players", () => {
+		expect(panel.tabs.at(0)?.id).toBe("account");
 	});
 
 	test("writes the settings form into config.json through the settings module", () => {
@@ -83,11 +83,10 @@ describe("laying out the hytale panel", () => {
 		expect(forms.at(0)?.restartHint).toBe(true);
 	});
 
-	test("puts the sign-in behind the login detail module", () => {
+	test("leaves the first sign-in to the setup page and keeps only the account controls here", () => {
 		expect(details.at(0)?.module).toBe("login");
 		expect(details.at(0)?.actions?.map((action) => action.id)).toEqual([
-			"begin",
-			"cancel",
+			"switch",
 			"signout",
 		]);
 	});

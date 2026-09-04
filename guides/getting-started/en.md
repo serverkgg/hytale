@@ -12,22 +12,23 @@ After payment your machine starts provisioning — follow its progress on the or
 
 A Hytale server has to identify itself to the game network before it can download the game files, and that is a step you do **once**, with your own account.
 
-1. Start your server from the panel
-2. Open the **Login** tab — the status reads **Setup stage**
-3. Press **Start login** — a code and a link appear
-4. Open the link in your browser, sign in with your Hytale account, and enter the code
+The panel opens on the **Setup** page by itself and walks the whole thing. Your server starts, asks Hytale for a sign-in code, and the page shows you the code and the link — you press nothing to get them.
 
-@[open](panel:login)
+1. Open the link the setup page shows, in your browser
+2. Sign in with your own Hytale account
+3. Enter the code from the page
 
-> [!warning] The code expires in about 10 minutes. If it runs out, press **Start login** again and you get a fresh one.
+@[open](setup)
+
+> [!warning] A code lives about 10 minutes. If it runs out, the page takes a fresh one by itself, and there is a **Get a new code** button whenever you want one.
 
 ## Let it download and start
 
-The moment we see the sign-in succeed, your server downloads the full game files on its own — the assets file alone is over 3GB, so go make a coffee.
+The moment the sign-in lands, the setup page moves to the download step and shows the progress. The game files are well over a gigabyte, so go make a coffee.
 
-It then shuts down by itself and comes back up on the full game, already signed in. There is nothing for you to do; just watch the console until the status reads **Server installed**.
+Your server then shuts down by itself and comes back up on the full game, already signed in. There is nothing for you to do — the page tells you when it is done.
 
-@[open](console)
+@[open](setup)
 
 > [!note] The sign-in is stored encrypted inside your server, so you never repeat this step on a restart.
 
@@ -48,6 +49,12 @@ Your server is still setting up, so it has no address yet — it appears here th
 :::
 
 > [!note] If you set a join password from the Settings tab, the game will ask every player for it. This is the easiest way to keep the server private for your group.
+
+## Switch or sign out the account
+
+The account your server is signed in with lives in the **Account** tab, and you can change it while the server is running. **Switch account** signs the current account out and puts a fresh code on the setup page for the next one. **Sign out** only clears the sign-in, and your server takes no players until you sign it back in.
+
+@[open](panel:account)
 
 ## Your first day
 

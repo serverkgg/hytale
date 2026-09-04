@@ -41,6 +41,13 @@ container:
         min: 5520
         max: 5569
 
+secrets:
+  - key: CURSEFORGE_API_KEY
+    description:
+      ar: مفتاح CurseForge API — بدونه يقفل كتالوج مودات هايتيل، ويبقى الرفع اليدوي لمجلد المودات هو الطريق الوحيد.
+      en: CurseForge API key — without it the Hytale mod catalog stays off and uploading to the mods folder by hand is the only way.
+    required: false
+
 backup:
   only:
     - Server/universe/**
@@ -74,6 +81,7 @@ reset:
 presence:
   name: player
   id: playerId
+  avatar: "serverk://avatars/hytale/{playerId}"
 
 files:
   protected:
@@ -90,6 +98,8 @@ files:
     - Server/Licenses/**
     - Server/auth.enc
     - Server/auth.key
+    - Server/mods/.serverk-mods.json
+    - earlyplugins/**
     - updater/**
   notable:
     - match: Server/config.json
@@ -119,8 +129,17 @@ files:
       color: "#c77dff"
       restart: true
       note:
-        ar: مجلد المودات. حط ملفات المود هنا وأعد التشغيل عشان تشتغل، ولازم كل اللاعبين يكون عندهم نفس المودات.
-        en: Your mods folder. Drop mod files here and restart for them to load — every player needs the same mods.
+        ar: مجلد المودات. حط ملف المود هنا زي ما هو (zip. أو jar.) وأعد التشغيل عشان يشتغل. اللاعبين ما يركّبون شي عندهم — سيرفرك يوصّل لهم المودات أول ما يدخلون. الأسهل تركّبها من تبويب المودات.
+        en: Your mods folder. Drop the mod file in as it is (.zip or .jar) and restart for it to load. Your players install nothing — your server streams the mods to them as they join. The Mods tab is the easier way.
+    - match: earlyplugins
+      label:
+        ar: إضافات مبكّرة
+        en: Early plugins
+      icon: shield
+      color: "#8c8c8c"
+      note:
+        ar: هايتيل نفسها تقول إن الإضافات المبكّرة غير مدعومة وتعطّل السيرفر، وسيرفرك ما يشغّلها. حط موداتك في Server/mods بدالها.
+        en: Hytale itself calls early plugins unsupported and unstable, and Serverk never enables them. Put your mods in Server/mods instead.
     - match: Server/permissions.json
       label:
         ar: الصلاحيات والقائمة البيضاء
@@ -150,6 +169,10 @@ guideTags:
     name:
       ar: التحديثات
       en: Updates
+  - id: mods
+    name:
+      ar: المودات
+      en: Mods
 
 guides:
   - id: getting-started
@@ -181,3 +204,19 @@ guides:
     bodyPath:
       ar: guides/updates/ar.md
       en: guides/updates/en.md
+  - id: mods
+    title:
+      ar: مودات هايتيل
+      en: Hytale mods
+    summary:
+      ar: ركّب مودات على سيرفرك بدون ما يركّب لاعبينك أي شي عندهم.
+      en: Install mods on your server without your players installing anything.
+    tags:
+      - mods
+    surfaces:
+      - overview
+      - panel
+      - files
+    bodyPath:
+      ar: guides/mods/ar.md
+      en: guides/mods/en.md

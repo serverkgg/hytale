@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { DEFAULT_DEVICE_CODE_TTL_SECONDS, HytaleAuthState, parseAuthReport, parseDeviceCode } from "./hytaleAuth";
+import {
+	DEFAULT_DEVICE_CODE_TTL_SECONDS,
+	HytaleAuthState,
+	parseAuthReport,
+	parseDeviceCode,
+	parseProfile,
+} from "./hytaleAuth";
 
 const DEVICE_BLOCK = [
 	"Starting OAuth2 device flow. Check console for verification URL.",
@@ -60,6 +66,36 @@ describe("parseDeviceCode", () => {
 	});
 });
 
+describe("parseProfile", () => {
+	test("keeps the display name and drops the account id hytale prints beside it", () => {
+		expect(
+			parseProfile([
+				"Profile: Meslzy (0f9c5e6a-4b1d-4e2f-9a77-3c9b1f0e5d21)",
+			]),
+		).toBe("Meslzy");
+	});
+
+	test("reads a profile line that carries the name alone", () => {
+		expect(
+			parseProfile([
+				"Profile: meslzy",
+			]),
+		).toBe("meslzy");
+	});
+
+	test("answers null on the empty profile line a signed out server prints", () => {
+		expect(parseProfile(SIGNED_OUT_STATUS)).toBeNull();
+	});
+
+	test("answers null when the status printed no profile line at all", () => {
+		expect(
+			parseProfile([
+				"Token Source: OAuth Device",
+			]),
+		).toBeNull();
+	});
+});
+
 describe("parseAuthReport", () => {
 	test("reads a server that never signed in, even though the line above says Authenticated", () => {
 		const report = parseAuthReport(SIGNED_OUT_STATUS);
@@ -108,10 +144,25 @@ describe("parseAuthReport", () => {
 		).toEqual({
 			state: HytaleAuthState.SignedIn,
 			mode: "OAUTH_DEVICE",
+			profile: null,
 			lines: [
 				"Authentication successful! Mode: OAUTH_DEVICE",
 			],
 		});
+	});
+
+	test("reads the account name off the profile line of a signed in server", () => {
+		expect(
+			parseAuthReport([
+				"Token Source: OAuth Device",
+				"Profile: Meslzy (0f9c5e6a-4b1d-4e2f-9a77-3c9b1f0e5d21)",
+				"Session Token: Present",
+			]).profile,
+		).toBe("Meslzy");
+	});
+
+	test("claims no account for a server that never signed in, even though it prints an empty profile line", () => {
+		expect(parseAuthReport(SIGNED_OUT_STATUS).profile).toBeNull();
 	});
 
 	test("stays unknown when the console said something we do not recognise", () => {

@@ -27,6 +27,37 @@ export const mergeConfig = async (context: Bridge.Context, values: Bridge.Values
 	await context.codec.json.merge(await configPath(context), values);
 };
 
+export const readSection = async (context: Bridge.Context, section: string): Promise<Bridge.Values> => {
+	const path = await configPath(context);
+
+	if (!(await context.files.exists(path))) {
+		return {};
+	}
+
+	try {
+		const parsed: unknown = JSON.parse(await context.files.read(path));
+		const document =
+			parsed === null || typeof parsed !== "object" || Array.isArray(parsed) ? {} : (parsed as Record<string, unknown>);
+		const nested = document[section];
+
+		if (nested === null || typeof nested !== "object" || Array.isArray(nested)) {
+			return {};
+		}
+
+		const values: Bridge.Values = {};
+
+		for (const [key, value] of Object.entries(nested)) {
+			if (value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+				values[key] = value;
+			}
+		}
+
+		return values;
+	} catch {
+		return {};
+	}
+};
+
 export const mergeSection = async (context: Bridge.Context, section: string, values: Bridge.Values) => {
 	const path = await configPath(context);
 	const raw = (await context.files.exists(path)) ? await context.files.read(path) : "";

@@ -37,6 +37,10 @@ const TOKEN_SOURCE = /^Token Source:\s*(?<source>.*)$/m;
 
 const SESSION_TOKEN = /^Session Token:\s*(?<token>.*)$/m;
 
+const PROFILE = /^Profile:[^\S\n]*(?<profile>.*)$/m;
+
+const PROFILE_ID = /\s*\([^)]*\)\s*$/;
+
 const SUCCESS_MODE = /Authentication successful!\s*Mode:\s*(?<mode>[A-Za-z][A-Za-z0-9 _-]{0,31})/;
 
 const SIGNED_OUT = /\bNot authenticated\b|\bServer logged out\b/i;
@@ -58,6 +62,7 @@ export enum HytaleAuthState {
 export interface HytaleAuthReport {
 	state: HytaleAuthState;
 	mode: string | null;
+	profile: string | null;
 	lines: string[];
 }
 
@@ -92,6 +97,12 @@ const stateOf = (output: string, source: string | null, session: string | null) 
 	return SIGNED_OUT.test(output) ? HytaleAuthState.SignedOut : HytaleAuthState.Unknown;
 };
 
+export const parseProfile = (lines: string[]): string | null => {
+	const profile = (lines.join("\n").match(PROFILE)?.groups?.profile ?? "").replace(PROFILE_ID, "").trim();
+
+	return profile.length > 0 ? profile : null;
+};
+
 export const parseAuthReport = (lines: string[]): HytaleAuthReport => {
 	const output = lines.join("\n");
 	const source = output.match(TOKEN_SOURCE)?.groups?.source?.trim() ?? null;
@@ -103,6 +114,7 @@ export const parseAuthReport = (lines: string[]): HytaleAuthReport => {
 		mode:
 			output.match(SUCCESS_MODE)?.groups?.mode?.trim()
 			?? (state === HytaleAuthState.SignedIn && source !== null && source.length > 0 ? source : null),
+		profile: state === HytaleAuthState.SignedIn ? parseProfile(lines) : null,
 		lines,
 	};
 };
