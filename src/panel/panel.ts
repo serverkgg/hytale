@@ -99,7 +99,7 @@ const settingsTab: Bridge.Tab = {
 				},
 				{
 					key: "Password",
-					control: BridgeControl.Text,
+					control: BridgeControl.Secret,
 					label: {
 						ar: "كلمة مرور الدخول",
 						en: "Join password",

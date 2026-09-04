@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { BridgeLayout, BridgeSetupStepKind } from "@serverkgg/bridge";
+import { BridgeControl, BridgeLayout, BridgeSetupStepKind } from "@serverkgg/bridge";
 import { GuideOpenTab } from "@serverkgg/bridge/guides";
 import { driver } from "./driver";
 import { parseWho } from "./shared";
@@ -149,6 +149,21 @@ describe("walking the customer through the first run", () => {
 
 		expect(actions).not.toContain("begin");
 		expect(actions).toContain("switch");
+	});
+});
+
+const formFields = (tabId: string, sectionId: string) => {
+	const tab = (driver.panel?.tabs ?? []).find((entry) => entry.id === tabId);
+	const section = tab?.sections.find((entry) => entry.id === sectionId);
+
+	return section?.layout === BridgeLayout.Form ? section.fields : [];
+};
+
+describe("keeping the customer's own secrets out of everyone else's hands", () => {
+	test("keeps the join password a secret", () => {
+		const password = formFields("settings", "server").find((field) => field.key === "Password");
+
+		expect(password?.control).toBe(BridgeControl.Secret);
 	});
 });
 

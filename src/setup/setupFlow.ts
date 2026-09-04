@@ -279,12 +279,17 @@ interface SetupRun {
 	stopped: boolean;
 	step: string;
 	stops: (() => void)[];
+	first: Promise<void>;
+	settle: (() => void) | null;
 }
 
 let running: SetupRun | null = null;
 
 const stopRun = (run: SetupRun) => {
 	run.stopped = true;
+
+	run.settle?.();
+	run.settle = null;
 
 	for (const stop of run.stops.splice(0)) {
 		stop();
@@ -296,10 +301,20 @@ const startRun = (): SetupRun => {
 		stopRun(running);
 	}
 
+	let settle: (() => void) | null = null;
+
+	const first = new Promise<void>((resolve) => {
+		settle = () => {
+			resolve();
+		};
+	});
+
 	running = {
 		stopped: false,
 		step: SIGN_IN_STEP,
 		stops: [],
+		first,
+		settle,
 	};
 
 	return running;
@@ -317,6 +332,9 @@ const report = (context: Bridge.Context, run: SetupRun, state: HytaleSetupState)
 	}
 
 	context.setup.report(runtimeOf(state));
+
+	run.settle?.();
+	run.settle = null;
 };
 
 const awaitLine = (context: Bridge.Context, run: SetupRun, pattern: RegExp, timeoutMs: number) => {
@@ -484,10 +502,28 @@ export const signedInAt = (stage: HytaleStage, state: HytaleAuthState) => {
 	return stage === HytaleStage.Server ? state !== HytaleAuthState.SignedOut : state === HytaleAuthState.SignedIn;
 };
 
-export const advanceSetup = async (context: Bridge.Context) => {
+// Every entry point starts a run and answers on that run's first report, so a
+// caller never reads the previous run's runtime. Reporting Starting at the head
+// is what keeps an entry point that has to talk to the game console — the device
+// login takes seconds — from holding its caller for the whole round trip. Renew
+// is the exception: the customer pressed it to get a new code, so it answers on
+// the code itself.
+const begin = (context: Bridge.Context, plan: (run: SetupRun) => Promise<void>) => {
 	const run = startRun();
 
-	await drive(context, run, async () => {
+	void drive(context, run, () => {
+		return plan(run);
+	});
+
+	return run.first;
+};
+
+export const advanceSetup = async (context: Bridge.Context) => {
+	await begin(context, async (run) => {
+		report(context, run, {
+			phase: HytaleSetupPhase.Starting,
+		});
+
 		const stage = await stageOf(context);
 		const auth = await readAuth(context);
 
@@ -496,9 +532,7 @@ export const advanceSetup = async (context: Bridge.Context) => {
 };
 
 export const restartSignIn = async (context: Bridge.Context) => {
-	const run = startRun();
-
-	await drive(context, run, async () => {
+	await begin(context, async (run) => {
 		report(context, run, {
 			phase: HytaleSetupPhase.Starting,
 		});
@@ -512,7 +546,9 @@ export const renewSignIn = async (context: Bridge.Context) => {
 
 	await cancelDeviceLogin(context);
 
-	void restartSignIn(context);
+	await begin(context, async (run) => {
+		await flow(context, run, await stageOf(context), false);
+	});
 };
 
 export const cancelSignIn = async (context: Bridge.Context) => {

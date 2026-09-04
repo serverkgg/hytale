@@ -94,7 +94,7 @@ export const setup: Bridge.Setup = {
 		}
 
 		if (action === RETRY_ACTION) {
-			void advanceSetup(context);
+			await advanceSetup(context);
 
 			return;
 		}

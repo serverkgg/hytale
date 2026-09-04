@@ -1,16 +1,21 @@
-import { describe, expect, test } from "bun:test";
-import { BridgeSetupPromptKind, BridgeSetupStepState } from "@serverkgg/bridge";
-import { HytaleAuthState, HytaleStage } from "../shared";
+import { afterEach, describe, expect, test } from "bun:test";
+import { type Bridge, BridgeSetupPromptKind, BridgeSetupStepState } from "@serverkgg/bridge";
+import { AUTH_CANCEL_COMMAND, AUTH_LOGIN_COMMAND, AUTH_STATUS_COMMAND, HytaleAuthState, HytaleStage } from "../shared";
 import {
+	advanceSetup,
+	cancelSignIn,
 	DOWNLOAD_COMPLETE,
 	DOWNLOAD_PROGRESS,
 	exhausted,
 	HytaleSetupPhase,
 	progressFrom,
 	RENEW_LIMIT,
+	renewSignIn,
+	restartSignIn,
 	runtimeOf,
 	signedInAt,
 	startingRuntime,
+	stopSetup,
 } from "./setupFlow";
 
 const DEVICE = {
@@ -273,5 +278,158 @@ describe("the renew budget", () => {
 		expect(exhausted(0)).toBe(false);
 		expect(exhausted(RENEW_LIMIT - 1)).toBe(false);
 		expect(exhausted(RENEW_LIMIT)).toBe(true);
+	});
+});
+
+interface SetupHarness {
+	context: Bridge.Context;
+	reports: Bridge.SetupRuntime[];
+}
+
+const harness = (cancelsBeforeFailing = Number.POSITIVE_INFINITY): SetupHarness => {
+	const reports: Bridge.SetupRuntime[] = [];
+	const lines: string[] = [];
+
+	let cancels = 0;
+
+	const context = {
+		files: {
+			async exists() {
+				return false;
+			},
+		},
+
+		logs: {
+			async tail() {
+				return [
+					...lines,
+				];
+			},
+
+			follow() {
+				return () => {
+					return;
+				};
+			},
+		},
+
+		async command(input: string) {
+			if (input === AUTH_STATUS_COMMAND) {
+				lines.push("Not authenticated");
+
+				return;
+			}
+
+			if (input === AUTH_CANCEL_COMMAND) {
+				cancels += 1;
+
+				if (cancels > cancelsBeforeFailing) {
+					throw new Error("the console never answered the cancel");
+				}
+
+				return;
+			}
+
+			if (input === AUTH_LOGIN_COMMAND) {
+				return await new Promise<void>(() => {
+					return;
+				});
+			}
+		},
+
+		setup: {
+			report(runtime: Bridge.SetupRuntime) {
+				reports.push(runtime);
+			},
+
+			clear() {
+				return;
+			},
+		},
+
+		log: Object.assign(
+			() => {
+				return;
+			},
+			{
+				warn: () => {
+					return;
+				},
+			},
+		),
+	};
+
+	return {
+		context: context as unknown as Bridge.Context,
+		reports,
+	};
+};
+
+const IN_THE_DEVICE_LOGIN_MS = 200;
+
+describe("the run a setup entry point waits on", () => {
+	afterEach(() => {
+		stopSetup();
+	});
+
+	test("answers the moment the run reports, rather than at the end of the flow", async () => {
+		const { context, reports } = harness();
+
+		await advanceSetup(context);
+
+		expect(reports).toEqual([
+			runtimeOf({
+				phase: HytaleSetupPhase.Starting,
+			}),
+		]);
+	});
+
+	test("resolves the caller when the run is stopped before it ever reports", async () => {
+		const { context, reports } = harness();
+
+		const renewing = renewSignIn(context);
+
+		await Bun.sleep(IN_THE_DEVICE_LOGIN_MS);
+
+		expect(reports).toEqual([]);
+
+		stopSetup();
+
+		await renewing;
+
+		expect(reports).toEqual([]);
+	});
+
+	test("frees a waiting caller even when the cancel that supersedes it fails", async () => {
+		const { context } = harness(1);
+
+		const renewing = renewSignIn(context);
+
+		await Bun.sleep(IN_THE_DEVICE_LOGIN_MS);
+
+		await expect(cancelSignIn(context)).rejects.toThrow("never answered the cancel");
+
+		await renewing;
+	});
+
+	test("never lets one run's report answer another run's caller", async () => {
+		const { context, reports } = harness();
+
+		const renewing = renewSignIn(context);
+
+		await Bun.sleep(IN_THE_DEVICE_LOGIN_MS);
+
+		expect(reports).toEqual([]);
+
+		const restarting = restartSignIn(context);
+
+		await renewing;
+		await restarting;
+
+		expect(reports).toEqual([
+			runtimeOf({
+				phase: HytaleSetupPhase.Starting,
+			}),
+		]);
 	});
 });
