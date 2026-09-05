@@ -30,6 +30,14 @@ The version currently installed on your server:
 @[field](server.version)
 :::
 
+## The game's snapshots and ours
+
+The Hytale server keeps its own snapshots every half hour and before every update, in `Server/backups` on your server's own disk. They are a quick rescue when something in the world breaks — you reach them from the Files tab.
+
+The backups in the **Backups tab** are a different thing: we take them, they cover every file on your server, each one gets a second copy in off-site storage away from the machine, and you can download one or roll back to it with a click. The game's snapshots die with the machine; ours do not.
+
+> [!note] Hytale's snapshots count against your server's disk space, not against your backup space.
+
 > [!warning] Hytale is early, and updates can change worlds and mods. If you depend on mods, take a backup before any large update.
 
 @[open](backups)
