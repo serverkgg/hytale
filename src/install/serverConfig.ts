@@ -1,6 +1,7 @@
 import type { Bridge } from "@serverkgg/bridge";
 import {
 	AUTH_KEY_FILE,
+	AUTH_STORE_FILE,
 	BACKUP_SECTION,
 	CONFIG_FILE,
 	JVM_OPTIONS_FILE,
@@ -114,6 +115,50 @@ const adoptMigrated = async (context: Bridge.Context, file: string) => {
 	await context.files.move(file, target);
 };
 
+export const RESTORED_FILES = [
+	AUTH_STORE_FILE,
+	AUTH_KEY_FILE,
+	CONFIG_FILE,
+	PERMISSIONS_FILE,
+];
+
+const reclaimRestored = async (context: Bridge.Context, file: string) => {
+	const source = `${SERVER_DIRECTORY}/${file}`;
+
+	if (!(await context.files.exists(source))) {
+		return false;
+	}
+
+	if (await context.files.exists(file)) {
+		await context.files.remove(file);
+	}
+
+	await context.files.move(source, file);
+
+	return true;
+};
+
+export const reclaimRestoredFiles = async (context: Bridge.Context) => {
+	const reclaimed: string[] = [];
+
+	for (const file of RESTORED_FILES) {
+		if (await reclaimRestored(context, file)) {
+			reclaimed.push(file);
+		}
+	}
+
+	if (reclaimed.length > 0) {
+		context.log(
+			"brought the restored sign-in and settings back beside the installer so the payload returns on its own",
+			{
+				files: reclaimed.join(", "),
+			},
+		);
+	}
+
+	return reclaimed;
+};
+
 export const applyServerConfig = async (context: Bridge.Context) => {
 	await adoptMigrated(context, CONFIG_FILE);
 	await adoptMigrated(context, PERMISSIONS_FILE);
@@ -132,6 +177,7 @@ export const applyServerConfig = async (context: Bridge.Context) => {
 };
 
 export const applyBootstrapConfig = async (context: Bridge.Context) => {
+	await reclaimRestoredFiles(context);
 	await seedPermissions(context, PERMISSIONS_FILE);
 	await ensureAuthKey(context, AUTH_KEY_FILE);
 

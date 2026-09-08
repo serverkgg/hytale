@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { backupValues, missingValues, seedValues, updateValues } from "./serverConfig";
+import type { Bridge } from "@serverkgg/bridge";
+import { backupValues, missingValues, reclaimRestoredFiles, seedValues, updateValues } from "./serverConfig";
 
 describe("updateValues", () => {
 	test("applies an update on a schedule, because one player who never leaves must not lock everyone else out", () => {
@@ -99,5 +100,84 @@ describe("missingValues", () => {
 				},
 			),
 		).toEqual({});
+	});
+});
+
+const reclaimContext = (seed: Record<string, string> = {}) => {
+	const stored = new Map(Object.entries(seed));
+
+	return {
+		stored,
+		context: {
+			log: Object.assign(() => {}, {
+				warn: () => {},
+			}),
+			files: {
+				async exists(path: string) {
+					return stored.has(path);
+				},
+				async remove(path: string) {
+					stored.delete(path);
+				},
+				async move(from: string, to: string) {
+					if (!stored.has(from)) {
+						throw new Error(`"${from}" does not exist`);
+					}
+
+					if (stored.has(to)) {
+						throw new Error(`"${to}" already exists`);
+					}
+
+					stored.set(to, stored.get(from) ?? "");
+					stored.delete(from);
+				},
+			},
+		} as unknown as Bridge.Context,
+	};
+};
+
+describe("reclaimRestoredFiles", () => {
+	test("brings a restored sign-in and settings back beside the installer, so a restore does not cost the customer the sign-in", async () => {
+		const { context, stored } = reclaimContext({
+			"Server/auth.enc": "sealed",
+			"Server/auth.key": "key",
+			"Server/config.json": '{"ServerName":"My world"}',
+			"Server/permissions.json": "{}",
+			"Server/universe": "world",
+		});
+
+		expect(await reclaimRestoredFiles(context)).toEqual([
+			"auth.enc",
+			"auth.key",
+			"config.json",
+			"permissions.json",
+		]);
+
+		expect(stored.get("auth.enc")).toBe("sealed");
+		expect(stored.get("config.json")).toBe('{"ServerName":"My world"}');
+		expect(stored.has("Server/auth.enc")).toBe(false);
+		expect(stored.get("Server/universe")).toBe("world");
+	});
+
+	test("lets the restored copy win over one the installer already seeded", async () => {
+		const { context, stored } = reclaimContext({
+			"Server/config.json": '{"ServerName":"My world"}',
+			"config.json": '{"ServerName":"Hytale Server"}',
+		});
+
+		expect(await reclaimRestoredFiles(context)).toEqual([
+			"config.json",
+		]);
+
+		expect(stored.get("config.json")).toBe('{"ServerName":"My world"}');
+	});
+
+	test("does nothing on a server that never installed the payload", async () => {
+		const { context, stored } = reclaimContext({
+			"config.json": '{"ServerName":"Hytale Server"}',
+		});
+
+		expect(await reclaimRestoredFiles(context)).toEqual([]);
+		expect(stored.get("config.json")).toBe('{"ServerName":"Hytale Server"}');
 	});
 });
