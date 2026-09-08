@@ -1,7 +1,7 @@
 import { type Bridge, BridgeKind } from "@serverkgg/bridge";
 import { startingRuntime } from "../setup";
 import { HytaleStage } from "../shared";
-import { readStamp } from "./installStamp";
+import { readInstallStamp } from "./installStamp";
 import { prepareStage } from "./prepare";
 
 export const install: Bridge.Install = {
@@ -20,7 +20,7 @@ export const install: Bridge.Install = {
 		context.log("hytale is ready to be set up, the setup page walks the customer through the sign-in");
 	},
 	async describe(context) {
-		const stamp = await readStamp(context);
+		const stamp = await readInstallStamp(context);
 
 		return {
 			version: stamp?.version ?? stamp?.installer ?? null,

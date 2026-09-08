@@ -1,5 +1,6 @@
 import { type Bridge, BridgeKind } from "@serverkgg/bridge";
-import { prepareStage, stampVersion } from "../install";
+import { BridgeEventName } from "@serverkgg/bridge/protocol";
+import { prepareStage, readInstallStamp, stampVersion } from "../install";
 import { advanceSetup } from "../setup";
 import {
 	BOOTSTRAP_JAR,
@@ -46,11 +47,20 @@ const stampBootedVersion = async (context: Bridge.Context) => {
 	for (const line of (await context.logs.tail(BOOT_LINES)).toReversed()) {
 		const version = bootedVersion(line);
 
-		if (version !== null) {
-			await stampVersion(context, version);
-
-			return;
+		if (version === null) {
+			continue;
 		}
+
+		const previous = (await readInstallStamp(context))?.version ?? null;
+
+		if ((await stampVersion(context, version)) && previous !== null) {
+			context.emit(BridgeEventName.ServerUpdated, {
+				from: previous,
+				to: version,
+			});
+		}
+
+		return;
 	}
 };
 
@@ -76,7 +86,7 @@ export const lifecycle: Bridge.Lifecycle = {
 			: bootstrapArguments(context.server.memoryMb);
 	},
 	async stop(context) {
-		context.emit("ServerStopping");
+		context.emit(BridgeEventName.ServerStopping);
 
 		await context.command(STOP_COMMAND, {
 			expect: SERVER_STOPPED,

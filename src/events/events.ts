@@ -1,4 +1,5 @@
 import { type Bridge, BridgeKind } from "@serverkgg/bridge";
+import { BridgeEventName } from "@serverkgg/bridge/protocol";
 import { PLAYER_DIED, PLAYER_JOINED, PLAYER_LEFT, SERVER_READY } from "../shared";
 
 const CRASHED = /\bException in thread "main"\b|\bFATAL\b.*\bshutting down\b/;
@@ -14,38 +15,41 @@ export const events: Bridge.Events = {
 	patterns: [
 		{
 			match: SERVER_READY,
-			emit: "ServerStarted",
+			emit: BridgeEventName.ServerStarted,
 		},
 		{
 			match: PLAYER_JOINED,
-			emit: "PlayerJoined",
+			emit: BridgeEventName.PlayerJoined,
 		},
 		{
 			match: PLAYER_LEFT,
-			emit: "PlayerLeft",
+			emit: BridgeEventName.PlayerLeft,
 		},
 		{
 			match: PLAYER_DIED,
-			emit: "PlayerDied",
+			emit: BridgeEventName.PlayerDied,
 		},
 		{
 			match: CRASHED,
-			emit: "ServerCrashed",
+			emit: BridgeEventName.ServerCrashed,
 		},
 		{
 			match: PORT_BIND_FAILED,
-			emit: "PortBindFailed",
+			emit: BridgeEventName.PortBindFailed,
 		},
 		{
 			match: WRONG_JAVA,
-			emit: "WrongJavaVersion",
+			emit: BridgeEventName.WrongJavaVersion,
 		},
 		{
 			match: MEMORY_UNDERSIZED,
-			emit: "MemoryUndersized",
+			emit: BridgeEventName.MemoryUndersized,
 		},
 	],
 	emits: [
-		"ServerStopping",
+		BridgeEventName.ServerStopping,
+		BridgeEventName.ServerUpdated,
+		BridgeEventName.PlayerKicked,
+		BridgeEventName.PlayerBanned,
 	],
 };

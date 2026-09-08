@@ -1,32 +1,29 @@
 import { type Bridge, BridgeFailureCode, BridgeFailureError, BridgeKind, BridgeUserError } from "@serverkgg/bridge";
-import { readStamp } from "../install";
-import { HytaleStage, PATCHLINE, readSection, SERVER_DIRECTORY, stageOf, UPDATE_SECTION } from "../shared";
 import {
-	CATEGORY_CACHE_SECONDS,
-	CURSEFORGE,
-	CURSEFORGE_GAME_ID,
-	CURSEFORGE_PROVIDER,
 	CURSEFORGE_SEARCH_CEILING,
-	type CurseCategories,
-	type CurseFileEntry,
-	type CurseFiles,
-	type CurseSearch,
-	type CurseSingle,
-	categoryLabel,
-	categoryName,
+	type CurseforgeCatalog,
+	type CurseforgeCatalogOptions,
+	type CurseforgeFile,
+	CurseforgeSort,
+	createCurseforgeCatalog,
 	curseforgeDownloadUrl,
-	curseforgeReady,
-	curseforgeRequest,
 	curseforgeSha1,
-	curseforgeVersionOf,
-	PROJECT_CACHE_SECONDS,
-	SEARCH_CACHE_SECONDS,
-	SORT_NAME,
-	SORT_POPULARITY,
-	SORT_UPDATED,
-	selectFile,
-} from "./modsCurseforge";
+} from "@serverkgg/bridge/catalogs";
+import { readInstallStamp } from "../install";
+import { HytaleStage, PATCHLINE, readSection, SERVER_DIRECTORY, stageOf, UPDATE_SECTION } from "../shared";
+import { CURSEFORGE_PROVIDER, categoryLabel, categoryName, curseforgeVersionOf, selectFile } from "./modsCurseforge";
 import { type ModEntry, type ModsSidecar, readSidecar, writeSidecar } from "./modsSidecar";
+
+const CATALOG_OPTIONS: CurseforgeCatalogOptions = {
+	gameId: 70_216,
+	searchCacheSeconds: 60,
+	projectCacheSeconds: 600,
+	categoryCacheSeconds: 86_400,
+};
+
+const curseforge = (context: Bridge.Context) => {
+	return createCurseforgeCatalog(context, CATALOG_OPTIONS);
+};
 
 export const MODS_DIRECTORY = `${SERVER_DIRECTORY}/mods`;
 
@@ -82,7 +79,7 @@ export const needsDownload = (tracked: ModEntry | null, fileId: string) => {
 	return tracked === null || tracked.fileId !== fileId;
 };
 
-export const refreshedEntry = (tracked: ModEntry, file: CurseFileEntry, gameVersion: string | null): ModEntry => {
+export const refreshedEntry = (tracked: ModEntry, file: CurseforgeFile, gameVersion: string | null): ModEntry => {
 	return {
 		...tracked,
 		gameVersion: curseforgeVersionOf(file, gameVersion),
@@ -136,8 +133,8 @@ const NOT_READY_NOTE: Bridge.Text = {
 	en: "The mod catalog is off right now. An administrator needs to set the CurseForge key.",
 };
 
-const providersOf = (context: Bridge.Context): Bridge.CatalogProvider[] => {
-	const ready = curseforgeReady(context);
+const providersOf = (catalog: CurseforgeCatalog): Bridge.CatalogProvider[] => {
+	const ready = catalog.ready();
 
 	return [
 		{
@@ -156,23 +153,27 @@ const providersOf = (context: Bridge.Context): Bridge.CatalogProvider[] => {
 	];
 };
 
-const SORTS: Bridge.CatalogFacet[] = [
+interface SortFacet extends Bridge.CatalogFacet {
+	value: CurseforgeSort;
+}
+
+const SORTS: SortFacet[] = [
 	{
-		value: SORT_POPULARITY,
+		value: CurseforgeSort.Popularity,
 		label: {
 			ar: "الأكثر شهرة",
 			en: "Most popular",
 		},
 	},
 	{
-		value: SORT_UPDATED,
+		value: CurseforgeSort.LastUpdated,
 		label: {
 			ar: "آخر تحديث",
 			en: "Recently updated",
 		},
 	},
 	{
-		value: SORT_NAME,
+		value: CurseforgeSort.Name,
 		label: {
 			ar: "الاسم",
 			en: "Name",
@@ -180,15 +181,26 @@ const SORTS: Bridge.CatalogFacet[] = [
 	},
 ];
 
-const categoriesOf = async (context: Bridge.Context): Promise<Bridge.CatalogFacet[]> => {
-	try {
-		const result = await curseforgeRequest<CurseCategories>(
-			context,
-			`${CURSEFORGE}/categories?gameId=${CURSEFORGE_GAME_ID}`,
-			CATEGORY_CACHE_SECONDS,
-		);
+const SORT_BY_VALUE = new Map<string, CurseforgeSort>(
+	SORTS.map((facet) => [
+		facet.value,
+		facet.value,
+	]),
+);
 
-		return result.data
+const sortOf = (value: string | null) => {
+	return SORT_BY_VALUE.get(value ?? "") ?? CurseforgeSort.Popularity;
+};
+
+const categoryOf = (value: string | null) => {
+	const id = Number.parseInt(value ?? "", 10);
+
+	return Number.isSafeInteger(id) ? id : undefined;
+};
+
+const categoriesOf = async (context: Bridge.Context, catalog: CurseforgeCatalog): Promise<Bridge.CatalogFacet[]> => {
+	try {
+		return (await catalog.categories())
 			.filter((category) => category.isClass !== true)
 			.map((category) => {
 				return {
@@ -206,7 +218,7 @@ const categoriesOf = async (context: Bridge.Context): Promise<Bridge.CatalogFace
 const modTarget = async (context: Bridge.Context): Promise<ModTarget> => {
 	const update = await readSection(context, UPDATE_SECTION);
 	const patchline = update.Patchline;
-	const stamp = await readStamp(context);
+	const stamp = await readInstallStamp(context);
 
 	return {
 		stage: await stageOf(context),
@@ -284,19 +296,17 @@ const installProject = async (context: Bridge.Context, id: string): Promise<Brid
 
 	requireServer(target);
 
-	const project = encodeURIComponent(id);
-	const details = await curseforgeRequest<CurseSingle>(context, `${CURSEFORGE}/mods/${project}`);
-	const files = await curseforgeRequest<CurseFiles>(
-		context,
-		`${CURSEFORGE}/mods/${project}/files?pageSize=${FILE_PAGE_SIZE}`,
-		PROJECT_CACHE_SECONDS,
-	);
+	const catalog = curseforge(context);
+	const details = await catalog.mod(id);
+	const files = await catalog.modFiles(id, {
+		pageSize: FILE_PAGE_SIZE,
+	});
 	const file = selectFile(files.data, target.patchline, target.gameVersion);
 
 	if (!file) {
 		throw new BridgeFailureError(
 			BridgeFailureCode.NoCatalogVersionAvailable,
-			`"${details.data.name}" has no ${target.patchline} build for hytale ${target.gameVersion ?? "this version"}`,
+			`"${details.name}" has no ${target.patchline} build for hytale ${target.gameVersion ?? "this version"}`,
 		);
 	}
 
@@ -336,7 +346,7 @@ const installProject = async (context: Bridge.Context, id: string): Promise<Brid
 	if (!url) {
 		throw new BridgeFailureError(
 			BridgeFailureCode.CatalogRestricted,
-			`"${details.data.name}" does not allow downloads outside curseforge`,
+			`"${details.name}" does not allow downloads outside curseforge`,
 		);
 	}
 
@@ -362,16 +372,16 @@ const installProject = async (context: Bridge.Context, id: string): Promise<Brid
 	const entry: ModEntry = {
 		id,
 		provider: CURSEFORGE_PROVIDER,
-		projectId: String(details.data.id),
+		projectId: String(details.id),
 		fileId: String(file.id),
-		title: details.data.name,
+		title: details.name,
 		version: file.displayName,
 		gameVersion: curseforgeVersionOf(file, target.gameVersion),
 		gameVersions: file.gameVersions,
 		installedFor: target.gameVersion,
 		fileName: file.fileName,
-		pageUrl: details.data.links?.websiteUrl ?? null,
-		icon: details.data.logo?.thumbnailUrl ?? null,
+		pageUrl: details.links?.websiteUrl ?? null,
+		icon: details.logo?.thumbnailUrl ?? null,
 		sizeBytes: file.fileLength,
 	};
 
@@ -452,9 +462,10 @@ export const mods: Bridge.Catalog = {
 	pageSize: PAGE_SIZE,
 
 	async search(context, query) {
-		const providers = providersOf(context);
+		const catalog = curseforge(context);
+		const providers = providersOf(catalog);
 
-		if (!curseforgeReady(context)) {
+		if (!catalog.ready()) {
 			return {
 				hits: [],
 				total: 0,
@@ -466,7 +477,7 @@ export const mods: Bridge.Catalog = {
 
 		const facets = {
 			providers,
-			categories: await categoriesOf(context),
+			categories: await categoriesOf(context, catalog),
 			sorts: SORTS,
 		};
 
@@ -480,21 +491,13 @@ export const mods: Bridge.Catalog = {
 			};
 		}
 
-		const sort = query.sort ?? SORT_POPULARITY;
-		const url = new URL(`${CURSEFORGE}/mods/search`);
-
-		url.searchParams.set("gameId", String(CURSEFORGE_GAME_ID));
-		url.searchParams.set("searchFilter", query.query);
-		url.searchParams.set("sortField", sort);
-		url.searchParams.set("sortOrder", sort === SORT_NAME ? "asc" : "desc");
-		url.searchParams.set("index", String(index));
-		url.searchParams.set("pageSize", String(PAGE_SIZE));
-
-		if (query.category) {
-			url.searchParams.set("categoryId", query.category);
-		}
-
-		const result = await curseforgeRequest<CurseSearch>(context, url.toString(), SEARCH_CACHE_SECONDS);
+		const result = await catalog.search({
+			query: query.query,
+			sort: sortOf(query.sort),
+			categoryId: categoryOf(query.category),
+			index,
+			pageSize: PAGE_SIZE,
+		});
 
 		return {
 			hits: result.data.map((mod) => {

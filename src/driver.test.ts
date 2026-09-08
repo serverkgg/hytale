@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { BridgeControl, BridgeLayout, BridgeSetupStepKind } from "@serverkgg/bridge";
 import { GuideOpenTab } from "@serverkgg/bridge/guides";
+import { isBridgeEventName } from "@serverkgg/bridge/protocol";
 import { driver } from "./driver";
 import { parseWho } from "./shared";
 
@@ -208,24 +209,7 @@ describe("assembling the hytale driver", () => {
 		];
 
 		for (const name of declared) {
-			expect([
-				"GameModeChanged",
-				"MemoryUndersized",
-				"MissingDependency",
-				"ModCrashed",
-				"PlayerAdvanced",
-				"PlayerDied",
-				"PlayerJoined",
-				"PlayerLeft",
-				"PortBindFailed",
-				"ServerCrashed",
-				"ServerStarted",
-				"ServerStopping",
-				"TickLagging",
-				"WorldCorrupt",
-				"WorldSaved",
-				"WrongJavaVersion",
-			]).toContain(name);
+			expect(isBridgeEventName(name)).toBe(true);
 		}
 	});
 });

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { type CurseforgeFile, CurseforgeReleaseType } from "@serverkgg/bridge/catalogs";
 import {
 	catalogEntry,
 	coversVersion,
@@ -9,11 +10,10 @@ import {
 	refreshedEntry,
 	trackedNames,
 } from "./mods";
-import type { CurseFileEntry } from "./modsCurseforge";
 import { CATEGORY_LABELS, categoryLabel, categoryName, selectFile } from "./modsCurseforge";
 import type { ModEntry, ModsSidecar } from "./modsSidecar";
 
-const file = (over: Partial<CurseFileEntry>): CurseFileEntry => {
+const file = (over: Partial<CurseforgeFile>): CurseforgeFile => {
 	return {
 		id: 1,
 		modId: 918_273,
@@ -23,11 +23,12 @@ const file = (over: Partial<CurseFileEntry>): CurseFileEntry => {
 		fileLength: 2048,
 		fileDate: null,
 		isAvailable: true,
-		releaseType: 1,
+		releaseType: CurseforgeReleaseType.Release,
 		gameVersions: [
 			"0.6.3",
 		],
 		hashes: [],
+		dependencies: [],
 		...over,
 	};
 };
@@ -75,12 +76,12 @@ describe("picking the file to install", () => {
 				[
 					file({
 						id: 9,
-						releaseType: 2,
+						releaseType: CurseforgeReleaseType.Beta,
 						fileName: "beta.jar",
 					}),
 					file({
 						id: 5,
-						releaseType: 1,
+						releaseType: CurseforgeReleaseType.Release,
 						fileName: "release.jar",
 					}),
 				],
@@ -96,12 +97,12 @@ describe("picking the file to install", () => {
 				[
 					file({
 						id: 9,
-						releaseType: 2,
+						releaseType: CurseforgeReleaseType.Beta,
 						fileName: "beta.jar",
 					}),
 					file({
 						id: 5,
-						releaseType: 1,
+						releaseType: CurseforgeReleaseType.Release,
 						fileName: "release.jar",
 					}),
 				],
@@ -205,7 +206,7 @@ describe("picking the file to install", () => {
 			selectFile(
 				[
 					file({
-						releaseType: 3,
+						releaseType: CurseforgeReleaseType.Alpha,
 					}),
 				],
 				"release",

@@ -1,4 +1,5 @@
 import { type Bridge, BridgeUserError } from "@serverkgg/bridge";
+import { writeStamp } from "@serverkgg/bridge/install";
 import {
 	BOOTSTRAP_JAR,
 	digestUrl,
@@ -8,7 +9,7 @@ import {
 	parseMavenDigest,
 	parseMavenMetadata,
 } from "../shared";
-import { writeStamp } from "./installStamp";
+import type { InstallStamp } from "./installStamp";
 
 const DOWNLOAD_TIMEOUT_MS = 900_000;
 
@@ -79,7 +80,7 @@ export const ensureInstaller = async (context: Bridge.Context) => {
 		timeoutMs: DOWNLOAD_TIMEOUT_MS,
 	});
 
-	await writeStamp(context, {
+	await writeStamp<InstallStamp>(context, {
 		installer: version,
 		version: null,
 	});
