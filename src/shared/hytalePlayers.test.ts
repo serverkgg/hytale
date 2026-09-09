@@ -1,5 +1,16 @@
 import { describe, expect, test } from "bun:test";
-import { CHAT, PLAYER_DIED, PLAYER_JOINED, PLAYER_LEFT, parseWho } from "./hytalePlayers";
+import {
+	CHAT,
+	createPlayerIds,
+	IDENTITY_LIMIT,
+	identifyRoster,
+	PLAYER_DIED,
+	PLAYER_JOINED,
+	PLAYER_LEFT,
+	parseWho,
+	rosterPresenceOf,
+	rosterUsernameOf,
+} from "./hytalePlayers";
 
 const ESCAPE = String.fromCodePoint(0x1b);
 
@@ -242,5 +253,189 @@ describe("log patterns", () => {
 
 		expect(PLAYER_JOINED.test(line)).toBe(false);
 		expect(PLAYER_LEFT.test(line)).toBe(false);
+	});
+});
+
+const joinLine = (display: string, playerId: string) => {
+	return `[2026/09/04 02:55:09   INFO]                 [World|default] Player '${display}' joined world 'default' at location (-3.705E+2  1.200E+2  3.555E+2) (${playerId})`;
+};
+
+const MESLZY_ID = "beda09a2-23a1-4949-97b4-ad93ed3c78d1";
+
+const SAL_ID = "dd8d4c6b-64e9-4f49-aa45-387f7450f5e2";
+
+describe("createPlayerIds", () => {
+	test("learns the uuid behind a display name off the join line", () => {
+		const ids = createPlayerIds();
+
+		ids.learn([
+			joinLine("Mohammed", MESLZY_ID),
+		]);
+
+		expect(ids.idOf("Mohammed")).toBe(MESLZY_ID);
+	});
+
+	test("learns the same line when the console wraps it in colour", () => {
+		const ids = createPlayerIds();
+
+		ids.learn([
+			`${ESCAPE}[m[2026/09/04 02:55:09   INFO]                 [${ESCAPE}[0;32mWorld|default] Player 'Meslzy' joined world 'default' at location (-3.705E+2  1.200E+2  3.555E+2) (${MESLZY_ID})${ESCAPE}[m`,
+		]);
+
+		expect(ids.idOf("Meslzy")).toBe(MESLZY_ID);
+	});
+
+	test("learns nothing from a line that is not a join", () => {
+		const ids = createPlayerIds();
+
+		ids.learn([
+			"[2026/01/24 12:51:45   INFO]   [HytaleServer] Booting up HytaleServer - Version: x, Revision: y",
+			"[2026/02/06 15:22:45   INFO]   [Universe|P] Removing player 'SalSevenSix' (dd8d4c6b-64e9-4f49-aa45-387f7450f5e2)",
+		]);
+
+		expect(ids.idOf("SalSevenSix")).toBeNull();
+	});
+
+	test("takes the newest uuid when the same display name joins again", () => {
+		const ids = createPlayerIds();
+
+		ids.learn([
+			joinLine("Meslzy", SAL_ID),
+			joinLine("Meslzy", MESLZY_ID),
+		]);
+
+		expect(ids.idOf("Meslzy")).toBe(MESLZY_ID);
+	});
+
+	test("keeps a player it learned even after that player left, because the join line scrolls out of the tail", () => {
+		const ids = createPlayerIds();
+
+		ids.learn([
+			joinLine("Meslzy", MESLZY_ID),
+		]);
+		ids.learn([
+			"[2026/02/06 15:22:45   INFO]   [Universe|P] Removing player 'Meslzy' (beda09a2-23a1-4949-97b4-ad93ed3c78d1)",
+		]);
+
+		expect(ids.idOf("Meslzy")).toBe(MESLZY_ID);
+	});
+
+	test("drops the oldest name once it has learned more than it keeps", () => {
+		const ids = createPlayerIds();
+
+		ids.learn(
+			Array.from({
+				length: IDENTITY_LIMIT + 1,
+			}).map((_, index) => joinLine(`Player${index}`, MESLZY_ID)),
+		);
+
+		expect(ids.idOf("Player0")).toBeNull();
+		expect(ids.idOf(`Player${IDENTITY_LIMIT}`)).toBe(MESLZY_ID);
+	});
+});
+
+describe("identifyRoster", () => {
+	test("keys a row by the uuid when the join line taught it one", () => {
+		const ids = createPlayerIds();
+
+		ids.learn([
+			joinLine("Mohammed", MESLZY_ID),
+		]);
+
+		expect(
+			identifyRoster(
+				parseWho([
+					"default (1): : Mohammed (meslzy)",
+				]),
+				ids,
+			),
+		).toEqual([
+			{
+				id: MESLZY_ID,
+				name: "Mohammed",
+				username: "meslzy",
+			},
+		]);
+	});
+
+	test("falls back to the account name for a player who joined before the driver started", () => {
+		expect(
+			identifyRoster(
+				parseWho([
+					"default (1): : Mohammed (meslzy)",
+				]),
+				createPlayerIds(),
+			),
+		).toEqual([
+			{
+				id: "meslzy",
+				name: "Mohammed",
+				username: "meslzy",
+			},
+		]);
+	});
+
+	test("identifies only the players it learned, leaving the rest on their account name", () => {
+		const ids = createPlayerIds();
+
+		ids.learn([
+			joinLine("Meslzy", MESLZY_ID),
+		]);
+
+		expect(
+			identifyRoster(
+				parseWho([
+					"default (2): : Meslzy (Meslzy), SalSevenSix (SalSevenSix)",
+				]),
+				ids,
+			).map((entry) => entry.id),
+		).toEqual([
+			MESLZY_ID,
+			"SalSevenSix",
+		]);
+	});
+});
+
+describe("reading a roster row back after the panel hands it to an action", () => {
+	test("takes the account name kick and ban really need", () => {
+		expect(
+			rosterUsernameOf({
+				id: MESLZY_ID,
+				name: "Mohammed",
+				username: "meslzy",
+			}),
+		).toBe("meslzy");
+	});
+
+	test("falls back to the row id when the row carries no account name", () => {
+		expect(
+			rosterUsernameOf({
+				id: "meslzy",
+				name: "Mohammed",
+			}),
+		).toBe("meslzy");
+	});
+
+	test("carries the name, the uuid and the account into the presence payload", () => {
+		expect(
+			rosterPresenceOf({
+				id: MESLZY_ID,
+				name: "Mohammed",
+				username: "meslzy",
+			}),
+		).toEqual({
+			player: "Mohammed",
+			playerId: MESLZY_ID,
+			account: "meslzy",
+		});
+	});
+
+	test("names the player by the row id when the row carries no name", () => {
+		expect(
+			rosterPresenceOf({
+				id: MESLZY_ID,
+				username: "meslzy",
+			}).player,
+		).toBe(MESLZY_ID);
 	});
 });

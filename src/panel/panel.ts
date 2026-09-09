@@ -5,6 +5,7 @@ import {
 	BridgeFormTarget,
 	BridgeIcon,
 	BridgeLayout,
+	BridgePlace,
 } from "@serverkgg/bridge";
 import { LOGIN_LOGOUT_ACTION, LOGIN_SWITCH_ACTION } from "../details";
 import { ANNOUNCE_MESSAGE_LENGTH } from "../shared";
@@ -67,6 +68,10 @@ const settingsTab: Bridge.Tab = {
 		{
 			layout: BridgeLayout.Form,
 			id: "server",
+			help: {
+				ar: "إعدادات سيرفرك الأساسية، وكل تعديل فيها يبي إعادة تشغيل.",
+				en: "Your server's core settings — every change here needs a restart.",
+			},
 			target: BridgeFormTarget.Settings,
 			module: "settings",
 			restartHint: true,
@@ -154,6 +159,7 @@ const playersTab: Bridge.Tab = {
 		{
 			layout: BridgeLayout.Table,
 			id: "online",
+			place: BridgePlace.Players,
 			module: "players",
 			columns: [
 				{
@@ -261,6 +267,22 @@ const controlsTab: Bridge.Tab = {
 						},
 					],
 				},
+			],
+		},
+		{
+			layout: BridgeLayout.Actions,
+			id: "whitelist",
+			title: {
+				ar: "القائمة البيضاء",
+				en: "Whitelist",
+			},
+			help: {
+				ar: "فعّلها وما يدخل سيرفرك إلا اللي تضيفهم بأسماء حساباتهم.",
+				en: "Turn it on and only the accounts you add can join your server.",
+			},
+			place: BridgePlace.Players,
+			module: "live",
+			actions: [
 				{
 					id: "whitelist",
 					label: {

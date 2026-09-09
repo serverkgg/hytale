@@ -1,14 +1,8 @@
 import { type Bridge, BridgeKind } from "@serverkgg/bridge";
 import { BridgeEventName } from "@serverkgg/bridge/protocol";
-import { banPlayer, kickPlayer, playerRoster } from "../shared";
+import { banPlayer, kickPlayer, playerRoster, rosterPresenceOf, rosterUsernameOf } from "../shared";
 
 const REFRESH_SECONDS = 20;
-
-const presenceOf = (row: Bridge.Row): Bridge.Values => {
-	return {
-		player: typeof row.name === "string" && row.name.length > 0 ? row.name : row.id,
-	};
-};
 
 export const players: Bridge.Collection = {
 	kind: BridgeKind.Collection,
@@ -19,21 +13,25 @@ export const players: Bridge.Collection = {
 	},
 	actions: {
 		async kick(context, row) {
-			await kickPlayer(context, row.id);
+			const username = rosterUsernameOf(row);
 
-			context.emit(BridgeEventName.PlayerKicked, presenceOf(row));
+			await kickPlayer(context, username);
+
+			context.emit(BridgeEventName.PlayerKicked, rosterPresenceOf(row));
 
 			context.log("kicked a player", {
-				username: row.id,
+				username,
 			});
 		},
 		async ban(context, row) {
-			await banPlayer(context, row.id);
+			const username = rosterUsernameOf(row);
 
-			context.emit(BridgeEventName.PlayerBanned, presenceOf(row));
+			await banPlayer(context, username);
+
+			context.emit(BridgeEventName.PlayerBanned, rosterPresenceOf(row));
 
 			context.log("banned a player", {
-				username: row.id,
+				username,
 			});
 		},
 	},

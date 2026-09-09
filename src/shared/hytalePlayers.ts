@@ -20,9 +20,80 @@ export const PLAYER_DIED =
 
 export const CHAT = /\[Hytale\] (?<player>[^:]{1,64}): (?<message>.{1,400})$/;
 
+export const IDENTITY_TAIL_LINES = 400;
+
+export const IDENTITY_LIMIT = 200;
+
 export type HytaleRosterEntry = Bridge.Row & {
 	name: string;
 	username: string;
+};
+
+export interface HytalePlayerIds {
+	learn(lines: string[]): void;
+	idOf(display: string): string | null;
+}
+
+export const createPlayerIds = (): HytalePlayerIds => {
+	const known = new Map<string, string>();
+
+	return {
+		learn(lines) {
+			for (const line of lines) {
+				const groups = line.match(PLAYER_JOINED)?.groups;
+				const display = groups?.player;
+				const playerId = groups?.playerId;
+
+				if (!display || !playerId) {
+					continue;
+				}
+
+				known.delete(display);
+				known.set(display, playerId);
+
+				while (known.size > IDENTITY_LIMIT) {
+					const oldest = known.keys().next().value;
+
+					if (oldest === undefined) {
+						break;
+					}
+
+					known.delete(oldest);
+				}
+			}
+		},
+
+		idOf(display) {
+			return known.get(display) ?? null;
+		},
+	};
+};
+
+export const playerIds = createPlayerIds();
+
+export const identifyRoster = (roster: HytaleRosterEntry[], ids: HytalePlayerIds): HytaleRosterEntry[] => {
+	return roster.map((entry) => {
+		const playerId = ids.idOf(entry.name);
+
+		return playerId === null
+			? entry
+			: {
+					...entry,
+					id: playerId,
+				};
+	});
+};
+
+export const rosterUsernameOf = (row: Bridge.Row): string => {
+	return typeof row.username === "string" && row.username.length > 0 ? row.username : row.id;
+};
+
+export const rosterPresenceOf = (row: Bridge.Row): Bridge.Values => {
+	return {
+		player: typeof row.name === "string" && row.name.length > 0 ? row.name : row.id,
+		playerId: row.id,
+		account: rosterUsernameOf(row),
+	};
 };
 
 export const parseWho = (lines: string[]): HytaleRosterEntry[] => {
@@ -64,5 +135,7 @@ export const parseWho = (lines: string[]): HytaleRosterEntry[] => {
 };
 
 export const playerRoster = async (context: Bridge.Context): Promise<HytaleRosterEntry[]> => {
-	return parseWho(await consoleOutput(context, WHO_COMMAND));
+	playerIds.learn(await context.logs.tail(IDENTITY_TAIL_LINES));
+
+	return identifyRoster(parseWho(await consoleOutput(context, WHO_COMMAND)), playerIds);
 };

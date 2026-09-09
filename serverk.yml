@@ -88,6 +88,11 @@ presence:
   name: player
   id: playerId
   avatar: "serverk://avatars/hytale/{playerId}"
+  fields:
+    - key: account
+      label:
+        ar: الحساب
+        en: Account
 
 files:
   protected:
