@@ -28,6 +28,10 @@ export const UPDATER_BACKUP_DIRECTORY = "updater/backup";
 
 export const STOP_COMMAND = "/stop";
 
+export const SAVE_WORLD_COMMAND = "/world save --all --confirm";
+
+export const SAVE_WORLD_LINE = /Finished saving all worlds/;
+
 export const PAYLOAD_FILES = [
 	SERVER_JAR,
 	ASSETS_ARCHIVE,

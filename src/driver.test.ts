@@ -183,6 +183,7 @@ describe("assembling the hytale driver", () => {
 		expect(driver.events).toBeDefined();
 		expect(driver.query).toBeDefined();
 		expect(driver.announce).toBeDefined();
+		expect(driver.backup).toBeDefined();
 		expect(driver.setup).toBeDefined();
 		expect(driver.terminal).toBeDefined();
 		expect(driver.panel).toBeDefined();

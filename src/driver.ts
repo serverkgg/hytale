@@ -1,6 +1,7 @@
 import type { BridgeDriver } from "@serverkgg/bridge";
 import { live } from "./actions";
 import { announce } from "./announce";
+import { backup } from "./backup";
 import { players } from "./collections";
 import { login } from "./details";
 import { events } from "./events";
@@ -18,6 +19,7 @@ export const driver: BridgeDriver = {
 	lifecycle,
 	events,
 	query,
+	backup,
 	announce,
 	setup,
 	terminal,

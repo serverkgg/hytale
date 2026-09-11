@@ -139,9 +139,10 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/world save",
 		summary: {
-			ar: "يحفظ العالم على القرص على طول.",
-			en: "Write the world to disk right now.",
+			ar: "يحفظ العالم على القرص على طول، ولازم `--confirm` معه.",
+			en: "Write the world to disk right now — it needs `--confirm`.",
 		},
+		syntax: "/world save [--world <name>|--all] --confirm",
 	},
 	{
 		name: "/world perf",
