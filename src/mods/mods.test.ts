@@ -862,7 +862,7 @@ describe("installing a chosen release", () => {
 });
 
 describe("previewing an install", () => {
-	test("names the release it will install and warns that a recovery backup comes first", async () => {
+	test("names the release it will install and says the change needs a restart", async () => {
 		const { context, downloads } = catalogServer();
 
 		const preview = await mods.preview?.(context, String(PROJECT_ID), "5544330");
@@ -892,19 +892,20 @@ describe("previewing an install", () => {
 	});
 });
 
-describe("protecting mod changes with a recovery backup", () => {
-	test("protects install, remove and toggle, the three actions that change the mods folder", () => {
-		expect(mods.protectedActions).toEqual([
+describe("leaving every mod change a live invoke", () => {
+	test("declares no protected action, because installing a mod destroys nothing", () => {
+		expect(mods.protectedActions).toBeUndefined();
+	});
+
+	test("keeps install, remove and toggle out of any recovery backup", () => {
+		for (const action of [
 			BridgeAction.Install,
 			BridgeAction.Remove,
 			BridgeAction.Toggle,
-		]);
-	});
-
-	test("protects only mutations the module actually implements", () => {
-		for (const action of mods.protectedActions ?? []) {
+		]) {
 			expect(isReadAction(action)).toBe(false);
 			expect(typeof mods[action as keyof Bridge.Catalog]).toBe("function");
+			expect(mods.protectedActions ?? []).not.toContain(action);
 		}
 	});
 
@@ -916,7 +917,7 @@ describe("protecting mod changes with a recovery backup", () => {
 			BridgeAction.Preview,
 		]) {
 			expect(isReadAction(action)).toBe(true);
-			expect(mods.protectedActions).not.toContain(action);
+			expect(mods.protectedActions ?? []).not.toContain(action);
 		}
 	});
 });

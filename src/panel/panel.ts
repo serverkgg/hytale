@@ -223,8 +223,8 @@ const modsTab: Bridge.Tab = {
 			layout: BridgeLayout.Catalog,
 			id: "mod-list",
 			help: {
-				ar: "ركّب مودات من كيرس فورج على سيرفرك. ناخذ نسخة احتياطية قبل أي تركيب أو حذف أو تعطيل، وإذا كان شغّال نرجّع نشغّله تلقائيًا.",
-				en: "Install CurseForge mods on your server. We take a recovery backup before every install, removal or toggle, and a running server starts again on its own.",
+				ar: "ركّب مودات من كيرس فورج على سيرفرك. أي تركيب أو حذف أو تعطيل ما يبان إلا بعد ما تعيد تشغيل سيرفرك.",
+				en: "Install CurseForge mods on your server. Every install, removal or toggle only shows after you restart your server.",
 			},
 			module: "mods",
 			restartHint: true,
