@@ -1,9 +1,18 @@
-import { type Bridge, BridgeFailureCode, BridgeFailureError, BridgeKind, BridgeUserError } from "@serverkgg/bridge";
+import {
+	type Bridge,
+	BridgeConfirm,
+	BridgeFailureCode,
+	BridgeFailureError,
+	BridgeKind,
+	BridgeNetError,
+	BridgeUserError,
+} from "@serverkgg/bridge";
 import {
 	CURSEFORGE_SEARCH_CEILING,
 	type CurseforgeCatalog,
 	type CurseforgeCatalogOptions,
 	type CurseforgeFile,
+	type CurseforgeMod,
 	CurseforgeSort,
 	createCurseforgeCatalog,
 	curseforgeDownloadUrl,
@@ -11,7 +20,15 @@ import {
 } from "@serverkgg/bridge/catalogs";
 import { readInstallStamp } from "../install";
 import { HytaleStage, PATCHLINE, readSection, SERVER_DIRECTORY, stageOf, UPDATE_SECTION } from "../shared";
-import { CURSEFORGE_PROVIDER, categoryLabel, categoryName, curseforgeVersionOf, selectFile } from "./modsCurseforge";
+import {
+	CURSEFORGE_PROVIDER,
+	categoryLabel,
+	categoryName,
+	curseforgeVersionOf,
+	isChannelled,
+	releasesOf,
+	selectFile,
+} from "./modsCurseforge";
 import { type ModEntry, type ModsSidecar, readSidecar, writeSidecar } from "./modsSidecar";
 
 const CATALOG_OPTIONS: CurseforgeCatalogOptions = {
@@ -37,6 +54,10 @@ export const MOD_EXTENSIONS = [
 const PAGE_SIZE = 20;
 
 const FILE_PAGE_SIZE = 50;
+
+const RELEASE_ID = /^\d+$/;
+
+const NOT_FOUND = 404;
 
 export interface ModFile {
 	name: string;
@@ -291,14 +312,46 @@ const trackedEntry = (sidecar: ModsSidecar, id: string): ModEntry | null => {
 	return filename ? (sidecar[filename] ?? null) : null;
 };
 
-const installProject = async (context: Bridge.Context, id: string): Promise<Bridge.CatalogEntry> => {
-	const target = await modTarget(context);
+const unknownRelease = (title: string) => {
+	return new BridgeUserError({
+		ar: `النسخة اللي اخترتها مو من نسخ "${title}" اللي تناسب سيرفرك. حدّث القائمة واختر نسخة ثانية.`,
+		en: `The version you picked is not one of the "${title}" builds that fit your server. Refresh the list and pick another.`,
+	});
+};
 
-	requireServer(target);
+const requestedFile = async (
+	catalog: CurseforgeCatalog,
+	details: CurseforgeMod,
+	target: ModTarget,
+	releaseId: string,
+): Promise<CurseforgeFile> => {
+	if (!RELEASE_ID.test(releaseId)) {
+		throw unknownRelease(details.name);
+	}
 
-	const catalog = curseforge(context);
-	const details = await catalog.mod(id);
-	const files = await catalog.modFiles(id, {
+	try {
+		const file = await catalog.file(details.id, releaseId);
+
+		if (file.modId !== details.id || !isChannelled(file, target.patchline)) {
+			throw unknownRelease(details.name);
+		}
+
+		return file;
+	} catch (error) {
+		if (error instanceof BridgeNetError && error.status === NOT_FOUND) {
+			throw unknownRelease(details.name);
+		}
+
+		throw error;
+	}
+};
+
+const newestFile = async (
+	catalog: CurseforgeCatalog,
+	details: CurseforgeMod,
+	target: ModTarget,
+): Promise<CurseforgeFile> => {
+	const files = await catalog.modFiles(details.id, {
 		pageSize: FILE_PAGE_SIZE,
 	});
 	const file = selectFile(files.data, target.patchline, target.gameVersion);
@@ -309,6 +362,35 @@ const installProject = async (context: Bridge.Context, id: string): Promise<Brid
 			`"${details.name}" has no ${target.patchline} build for hytale ${target.gameVersion ?? "this version"}`,
 		);
 	}
+
+	return file;
+};
+
+const resolveInstall = async (context: Bridge.Context, id: string, releaseId?: string) => {
+	const target = await modTarget(context);
+
+	requireServer(target);
+
+	const catalog = curseforge(context);
+	const details = await catalog.mod(id);
+	const file =
+		releaseId === undefined
+			? await newestFile(catalog, details, target)
+			: await requestedFile(catalog, details, target, releaseId);
+
+	return {
+		target,
+		details,
+		file,
+	};
+};
+
+const installProject = async (
+	context: Bridge.Context,
+	id: string,
+	releaseId?: string,
+): Promise<Bridge.CatalogEntry> => {
+	const { target, details, file } = await resolveInstall(context, id, releaseId);
 
 	await context.files.ensure(MODS_DIRECTORY);
 
@@ -459,6 +541,11 @@ const toggleEntry = async (context: Bridge.Context, id: string, enabled: boolean
 
 export const mods: Bridge.Catalog = {
 	kind: BridgeKind.Catalog,
+	protectedActions: [
+		"install",
+		"remove",
+		"toggle",
+	],
 	pageSize: PAGE_SIZE,
 
 	async search(context, query) {
@@ -531,8 +618,35 @@ export const mods: Bridge.Catalog = {
 		return mergeInstalled(sidecar, await listFiles(context), target.gameVersion);
 	},
 
-	async install(context, id) {
-		return await exclusive(() => installProject(context, id));
+	async releases(context, id) {
+		const target = await modTarget(context);
+		const files = await curseforge(context).modFiles(id, {
+			pageSize: FILE_PAGE_SIZE,
+		});
+
+		return releasesOf(files.data, target.patchline, target.gameVersion);
+	},
+
+	async preview(context, id, releaseId) {
+		const { details, file } = await resolveInstall(context, id, releaseId);
+
+		return {
+			confirm: BridgeConfirm.Normal,
+			lines: [
+				{
+					ar: "ناخذ نسخة احتياطية من سيرفرك قبل التغيير، وإذا كان شغّال نرجّع نشغّله بعدها تلقائيًا.",
+					en: "We take a recovery backup of your server before the change, and a running server starts again on its own afterwards.",
+				},
+				{
+					ar: `${details.name}: ${file.displayName}`,
+					en: `${details.name}: ${file.displayName}`,
+				},
+			],
+		};
+	},
+
+	async install(context, id, releaseId) {
+		return await exclusive(() => installProject(context, id, releaseId));
 	},
 
 	async remove(context, id) {

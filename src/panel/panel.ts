@@ -27,6 +27,10 @@ const accountTab: Bridge.Tab = {
 				ar: "حساب هايتيل المربوط بسيرفرك",
 				en: "The Hytale account your server uses",
 			},
+			help: {
+				ar: "سيرفرك يدخل هايتيل بهذا الحساب. تقدر تبدّله أو تسجّل خروج منه هنا.",
+				en: "Your server signs in to Hytale with this account. Switch it or sign it out here.",
+			},
 			module: "login",
 			actions: [
 				{
@@ -159,6 +163,10 @@ const playersTab: Bridge.Tab = {
 		{
 			layout: BridgeLayout.Table,
 			id: "online",
+			help: {
+				ar: "اللاعبين الداخلين سيرفرك الحين. تقدر تطرد أو تحظر أي واحد منهم.",
+				en: "The players on your server right now. Kick or ban any of them.",
+			},
 			place: BridgePlace.Players,
 			module: "players",
 			columns: [
@@ -214,6 +222,10 @@ const modsTab: Bridge.Tab = {
 		{
 			layout: BridgeLayout.Catalog,
 			id: "mod-list",
+			help: {
+				ar: "ركّب مودات من كيرس فورج على سيرفرك. ناخذ نسخة احتياطية قبل أي تركيب أو حذف أو تعطيل، وإذا كان شغّال نرجّع نشغّله تلقائيًا.",
+				en: "Install CurseForge mods on your server. We take a recovery backup before every install, removal or toggle, and a running server starts again on its own.",
+			},
 			module: "mods",
 			restartHint: true,
 			empty: {

@@ -1,5 +1,6 @@
 import type { Bridge } from "@serverkgg/bridge";
 import { type CurseforgeCategory, type CurseforgeFile, CurseforgeReleaseType } from "@serverkgg/bridge/catalogs";
+import type { BridgeCatalogRelease } from "@serverkgg/bridge/protocol";
 import { PATCHLINE } from "../shared";
 
 export const CURSEFORGE_PROVIDER = "curseforge";
@@ -134,17 +135,24 @@ const newest = (files: CurseforgeFile[]) => {
 	].sort((left, right) => right.id - left.id);
 };
 
+export const isChannelled = (file: CurseforgeFile, patchline: string) => {
+	if (!file.isAvailable) {
+		return false;
+	}
+
+	return patchline.toLowerCase() !== PATCHLINE || file.releaseType === CurseforgeReleaseType.Release;
+};
+
+export const channelledFiles = (files: CurseforgeFile[], patchline: string) => {
+	return newest(files.filter((file) => isChannelled(file, patchline)));
+};
+
 export const selectFile = (
 	files: CurseforgeFile[],
 	patchline: string,
 	gameVersion: string | null,
 ): CurseforgeFile | null => {
-	const usable = newest(files.filter((file) => file.isAvailable));
-
-	const channelled =
-		patchline.toLowerCase() === PATCHLINE
-			? usable.filter((file) => file.releaseType === CurseforgeReleaseType.Release)
-			: usable;
+	const channelled = channelledFiles(files, patchline);
 
 	if (channelled.length === 0) {
 		return null;
@@ -155,4 +163,24 @@ export const selectFile = (
 	}
 
 	return channelled.find((file) => file.gameVersions.includes(gameVersion)) ?? channelled.at(0) ?? null;
+};
+
+export const releasesOf = (
+	files: CurseforgeFile[],
+	patchline: string,
+	gameVersion: string | null,
+): BridgeCatalogRelease[] => {
+	return channelledFiles(files, patchline).map((file) => {
+		const declared = curseforgeVersionOf(file, gameVersion);
+
+		return {
+			id: String(file.id),
+			label: file.displayName,
+			...(declared === null
+				? {}
+				: {
+						gameVersion: declared,
+					}),
+		};
+	});
 };

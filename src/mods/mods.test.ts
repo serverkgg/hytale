@@ -1,16 +1,27 @@
 import { describe, expect, test } from "bun:test";
-import { type CurseforgeFile, CurseforgeReleaseType } from "@serverkgg/bridge/catalogs";
+import {
+	type Bridge,
+	BridgeAction,
+	BridgeConfirm,
+	BridgeNetError,
+	BridgeUserError,
+	isReadAction,
+} from "@serverkgg/bridge";
+import { CURSEFORGE_API, type CurseforgeFile, CurseforgeReleaseType } from "@serverkgg/bridge/catalogs";
+import { INSTALL_STAMP_FILE } from "@serverkgg/bridge/install";
+import { PAYLOAD_FILES } from "../shared";
 import {
 	catalogEntry,
 	coversVersion,
 	isStale,
 	MODS_DIRECTORY,
 	mergeInstalled,
+	mods,
 	needsDownload,
 	refreshedEntry,
 	trackedNames,
 } from "./mods";
-import { CATEGORY_LABELS, categoryLabel, categoryName, selectFile } from "./modsCurseforge";
+import { CATEGORY_LABELS, categoryLabel, categoryName, releasesOf, selectFile } from "./modsCurseforge";
 import type { ModEntry, ModsSidecar } from "./modsSidecar";
 
 const file = (over: Partial<CurseforgeFile>): CurseforgeFile => {
@@ -574,5 +585,338 @@ describe("naming a catalog category", () => {
 				name: "Magic\\Rituals",
 			}),
 		).toBe("Magic & Rituals");
+	});
+});
+
+const PROJECT_ID = 918_273;
+
+const project = {
+	id: PROJECT_ID,
+	classId: null,
+	name: "HeroCore API",
+	slug: "herocore-api",
+	summary: "",
+	downloadCount: 0,
+	authors: [],
+	categories: [],
+	dateModified: "2026-09-01T00:00:00Z",
+	links: {
+		websiteUrl: "https://www.curseforge.com/hytale/mods/herocore-api",
+	},
+	logo: null,
+};
+
+const projectFiles = [
+	file({
+		id: 5_544_330,
+		fileName: "HeroCore-1.4.0.jar",
+		displayName: "HeroCore 1.4.0",
+	}),
+	file({
+		id: 5_544_332,
+		fileName: "HeroCore-1.4.2.jar",
+		displayName: "HeroCore 1.4.2",
+	}),
+	file({
+		id: 5_544_335,
+		fileName: "HeroCore-1.5.0-beta.jar",
+		displayName: "HeroCore 1.5.0 beta",
+		releaseType: CurseforgeReleaseType.Beta,
+	}),
+];
+
+const foreignFile = file({
+	id: 7_000_001,
+	modId: 111_111,
+	fileName: "Other.jar",
+	displayName: "Other 1.0.0",
+});
+
+interface CatalogServer {
+	context: Bridge.Context;
+	stored: Map<string, string>;
+	downloads: string[];
+}
+
+const catalogServer = (): CatalogServer => {
+	const stored = new Map<string, string>([
+		...PAYLOAD_FILES.map(
+			(
+				path,
+			): [
+				string,
+				string,
+			] => [
+				path,
+				"",
+			],
+		),
+		[
+			INSTALL_STAMP_FILE,
+			JSON.stringify({
+				installer: "0.6.3",
+				version: "0.6.3",
+			}),
+		],
+	]);
+	const downloads: string[] = [];
+	const everyFile = [
+		...projectFiles,
+		foreignFile,
+	];
+
+	const answer = (url: string): unknown => {
+		const path = new URL(url).pathname.replace(new URL(CURSEFORGE_API).pathname, "");
+		const single = path.match(/^\/mods\/(?<mod>\d+)\/files\/(?<file>\d+)$/);
+
+		if (single?.groups) {
+			const found = everyFile.find(
+				(entry) => String(entry.modId) === single.groups?.mod && String(entry.id) === single.groups?.file,
+			);
+
+			if (!found) {
+				throw new BridgeNetError(404, "not found");
+			}
+
+			return {
+				data: found,
+			};
+		}
+
+		if (path === `/mods/${PROJECT_ID}/files`) {
+			return {
+				data: projectFiles,
+				pagination: {
+					index: 0,
+					pageSize: projectFiles.length,
+					resultCount: projectFiles.length,
+					totalCount: projectFiles.length,
+				},
+			};
+		}
+
+		if (path === `/mods/${PROJECT_ID}`) {
+			return {
+				data: project,
+			};
+		}
+
+		throw new BridgeNetError(404, `no route for ${path}`);
+	};
+
+	const log = Object.assign(() => undefined, {
+		warn: () => undefined,
+		error: () => undefined,
+	});
+
+	const context = {
+		secret: () => "curseforge-key",
+		net: {
+			json: async (url: string) => answer(url),
+		},
+		log,
+		files: {
+			exists: async (path: string) => stored.has(path),
+			read: async (path: string) => stored.get(path) ?? "",
+			write: async (path: string, content: string) => {
+				stored.set(path, content);
+			},
+			ensure: async () => undefined,
+			remove: async (path: string) => {
+				stored.delete(path);
+			},
+			move: async (from: string, to: string) => {
+				stored.set(to, stored.get(from) ?? "");
+				stored.delete(from);
+			},
+			download: async (path: string) => {
+				downloads.push(path);
+				stored.set(path, "");
+			},
+		},
+	} as unknown as Bridge.Context;
+
+	return {
+		context,
+		stored,
+		downloads,
+	};
+};
+
+describe("listing the releases a mod offers", () => {
+	test("offers only release builds, newest first, on the release patchline", () => {
+		expect(releasesOf(projectFiles, "release", "0.6.3")).toEqual([
+			{
+				id: "5544332",
+				label: "HeroCore 1.4.2",
+				gameVersion: "0.6.3",
+			},
+			{
+				id: "5544330",
+				label: "HeroCore 1.4.0",
+				gameVersion: "0.6.3",
+			},
+		]);
+	});
+
+	test("offers every channel on any other patchline", () => {
+		expect(releasesOf(projectFiles, "pre-release", "0.6.3").map((release) => release.id)).toEqual([
+			"5544335",
+			"5544332",
+			"5544330",
+		]);
+	});
+
+	test("leaves the game version out when a file declares none", () => {
+		expect(
+			releasesOf(
+				[
+					file({
+						id: 3,
+						gameVersions: [],
+					}),
+				],
+				"release",
+				null,
+			),
+		).toEqual([
+			{
+				id: "3",
+				label: "mod 1.0.0",
+			},
+		]);
+	});
+
+	test("skips a file curseforge marks unavailable", () => {
+		expect(
+			releasesOf(
+				[
+					file({
+						id: 4,
+						isAvailable: false,
+					}),
+				],
+				"release",
+				"0.6.3",
+			),
+		).toEqual([]);
+	});
+
+	test("asks curseforge for the project's files and maps them for the panel", async () => {
+		const { context } = catalogServer();
+
+		expect((await mods.releases?.(context, String(PROJECT_ID)))?.map((release) => release.id)).toEqual([
+			"5544332",
+			"5544330",
+		]);
+	});
+});
+
+describe("installing a chosen release", () => {
+	test("installs the release the customer picked instead of the newest one", async () => {
+		const { context, downloads, stored } = catalogServer();
+
+		const entry = await mods.install(context, String(PROJECT_ID), "5544330");
+
+		expect(downloads).toEqual([
+			`${MODS_DIRECTORY}/HeroCore-1.4.0.jar`,
+		]);
+		expect(entry.version).toBe("HeroCore 1.4.0");
+		expect(JSON.parse(stored.get(`${MODS_DIRECTORY}/.serverk-mods.json`) ?? "{}")["HeroCore-1.4.0.jar"].fileId).toBe(
+			"5544330",
+		);
+	});
+
+	test("installs the newest matching release when none is picked", async () => {
+		const { context, downloads } = catalogServer();
+
+		await mods.install(context, String(PROJECT_ID));
+
+		expect(downloads).toEqual([
+			`${MODS_DIRECTORY}/HeroCore-1.4.2.jar`,
+		]);
+	});
+
+	test("refuses a release that belongs to another project", async () => {
+		const { context, downloads } = catalogServer();
+
+		await expect(mods.install(context, String(PROJECT_ID), String(foreignFile.id))).rejects.toBeInstanceOf(
+			BridgeUserError,
+		);
+		expect(downloads).toEqual([]);
+	});
+
+	test("refuses a beta release on the release patchline", async () => {
+		const { context, downloads } = catalogServer();
+
+		await expect(mods.install(context, String(PROJECT_ID), "5544335")).rejects.toBeInstanceOf(BridgeUserError);
+		expect(downloads).toEqual([]);
+	});
+
+	test("refuses a release id that is not a curseforge file id", async () => {
+		const { context, downloads } = catalogServer();
+
+		await expect(mods.install(context, String(PROJECT_ID), "../../etc")).rejects.toBeInstanceOf(BridgeUserError);
+		expect(downloads).toEqual([]);
+	});
+});
+
+describe("previewing an install", () => {
+	test("names the release it will install and warns that a recovery backup comes first", async () => {
+		const { context, downloads } = catalogServer();
+
+		const preview = await mods.preview?.(context, String(PROJECT_ID), "5544330");
+
+		expect(preview?.confirm).toBe(BridgeConfirm.Normal);
+		expect(preview?.lines).toHaveLength(2);
+		expect(preview?.lines.at(1)).toEqual({
+			ar: "HeroCore API: HeroCore 1.4.0",
+			en: "HeroCore API: HeroCore 1.4.0",
+		});
+		expect(preview?.lines.at(0)?.ar.length).toBeGreaterThan(0);
+		expect(downloads).toEqual([]);
+	});
+
+	test("names the newest matching release when none is picked", async () => {
+		const { context } = catalogServer();
+
+		expect((await mods.preview?.(context, String(PROJECT_ID)))?.lines.at(1)?.en).toBe("HeroCore API: HeroCore 1.4.2");
+	});
+
+	test("refuses to preview a release the install would refuse", async () => {
+		const { context } = catalogServer();
+
+		await expect(mods.preview?.(context, String(PROJECT_ID), String(foreignFile.id))).rejects.toBeInstanceOf(
+			BridgeUserError,
+		);
+	});
+});
+
+describe("protecting mod changes with a recovery backup", () => {
+	test("protects install, remove and toggle, the three actions that change the mods folder", () => {
+		expect(mods.protectedActions).toEqual([
+			BridgeAction.Install,
+			BridgeAction.Remove,
+			BridgeAction.Toggle,
+		]);
+	});
+
+	test("protects only mutations the module actually implements", () => {
+		for (const action of mods.protectedActions ?? []) {
+			expect(isReadAction(action)).toBe(false);
+			expect(typeof mods[action as keyof Bridge.Catalog]).toBe("function");
+		}
+	});
+
+	test("leaves the read actions unprotected", () => {
+		for (const action of [
+			BridgeAction.Search,
+			BridgeAction.Installed,
+			BridgeAction.Releases,
+			BridgeAction.Preview,
+		]) {
+			expect(isReadAction(action)).toBe(true);
+			expect(mods.protectedActions).not.toContain(action);
+		}
 	});
 });
