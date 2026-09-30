@@ -1,4 +1,10 @@
-import { type Bridge, BridgeUserError } from "@serverkgg/bridge";
+import {
+	type Bridge,
+	BridgeDownloadError,
+	BridgeNetError,
+	BridgeUserError,
+	describeDownloadFailure,
+} from "@serverkgg/bridge";
 import { writeStamp } from "@serverkgg/bridge/install";
 import {
 	BOOTSTRAP_JAR,
@@ -20,14 +26,30 @@ export const UNREACHABLE: Bridge.Text = {
 	en: "We could not reach Hytale to download the server installer. Start your server again in a moment.",
 };
 
-export const latestRelease = async (context: Bridge.Context) => {
-	const metadata = parseMavenMetadata(
-		await context.net.text(MAVEN_METADATA_URL, {
+const isUnreachable = (error: unknown) => {
+	return (error instanceof BridgeNetError || error instanceof BridgeDownloadError) && error.status === null;
+};
+
+export const installerFailure = (error: unknown, subject: string) => {
+	return new BridgeUserError(isUnreachable(error) ? UNREACHABLE : describeDownloadFailure(error, subject), {
+		cause: error,
+	});
+};
+
+const releaseMetadata = async (context: Bridge.Context) => {
+	try {
+		return await context.net.text(MAVEN_METADATA_URL, {
 			cache: true,
 			cacheSeconds: METADATA_CACHE_SECONDS,
 			timeoutMs: METADATA_TIMEOUT_MS,
-		}),
-	);
+		});
+	} catch (error) {
+		throw installerFailure(error, BOOTSTRAP_JAR);
+	}
+};
+
+export const latestRelease = async (context: Bridge.Context) => {
+	const metadata = parseMavenMetadata(await releaseMetadata(context));
 
 	if (metadata.release === null) {
 		context.log.warn("hytale maven listed no server release");
@@ -70,15 +92,19 @@ export const ensureInstaller = async (context: Bridge.Context) => {
 		digest,
 	});
 
-	await context.files.download(BOOTSTRAP_JAR, jarUrl(version), {
-		...(digest === null
-			? {}
-			: {
-					digest,
-				}),
-		cache: true,
-		timeoutMs: DOWNLOAD_TIMEOUT_MS,
-	});
+	try {
+		await context.files.download(BOOTSTRAP_JAR, jarUrl(version), {
+			...(digest === null
+				? {}
+				: {
+						digest,
+					}),
+			cache: true,
+			timeoutMs: DOWNLOAD_TIMEOUT_MS,
+		});
+	} catch (error) {
+		throw installerFailure(error, `${BOOTSTRAP_JAR} ${version}`);
+	}
 
 	await writeStamp<InstallStamp>(context, {
 		installer: version,
