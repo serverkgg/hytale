@@ -1,4 +1,5 @@
 import { type Bridge, BridgeSetupPromptKind, BridgeSetupStepState, BridgeUserError } from "@serverkgg/bridge";
+import { BridgeEventName } from "@serverkgg/bridge/protocol";
 import {
 	AUTH_SUCCEEDED,
 	cancelDeviceLogin,
@@ -85,6 +86,21 @@ const STALLED_MESSAGE: Bridge.Text = {
 const FAILED_MESSAGE: Bridge.Text = {
 	ar: "ما قدرنا نكمّل الخطوة. جرّب مرة ثانية.",
 	en: "We could not finish this step. Try again.",
+};
+
+const SIGNED_IN_ACTIVITY: Bridge.Text = {
+	ar: "تم تسجيل دخول السيرفر بحساب هايتيل",
+	en: "Signed the server in with a Hytale account",
+};
+
+const DOWNLOADED_ACTIVITY: Bridge.Text = {
+	ar: "تم تنزيل ملفات هايتيل، والسيرفر يعيد التشغيل على اللعبة الكاملة",
+	en: "Downloaded the Hytale game files, the server is restarting on the full game",
+};
+
+const EXPIRED_ACTIVITY: Bridge.Text = {
+	ar: "انتهى وقت كل رموز الدخول قبل ما يكتمل تسجيل الدخول في هايتيل",
+	en: "Every sign-in code ran out before the Hytale sign-in finished",
 };
 
 const UNKNOWN_STEP: Bridge.Text = {
@@ -337,6 +353,30 @@ const report = (context: Bridge.Context, run: SetupRun, state: HytaleSetupState)
 	run.settle = null;
 };
 
+const record = (context: Bridge.Context, run: SetupRun, entry: Bridge.Activity) => {
+	if (run.stopped) {
+		return;
+	}
+
+	context.activity.report(entry);
+};
+
+const fail = (context: Bridge.Context, run: SetupRun, step: string, message: Bridge.Text) => {
+	record(context, run, {
+		name: BridgeEventName.SetupRejected,
+		text: message,
+		details: {
+			step,
+		},
+	});
+
+	report(context, run, {
+		phase: HytaleSetupPhase.Failed,
+		step,
+		message,
+	});
+};
+
 const awaitLine = (context: Bridge.Context, run: SetupRun, pattern: RegExp, timeoutMs: number) => {
 	return new Promise<RegExpMatchArray | null>((resolve) => {
 		let unfollow: (() => void) | null = null;
@@ -395,6 +435,14 @@ const signIn = async (context: Bridge.Context, run: SetupRun) => {
 		});
 
 		if ((await awaitLine(context, run, AUTH_SUCCEEDED, timeoutMs)) !== null) {
+			record(context, run, {
+				name: BridgeEventName.SetupCompleted,
+				text: SIGNED_IN_ACTIVITY,
+				details: {
+					step: SIGN_IN_STEP,
+				},
+			});
+
 			return !run.stopped;
 		}
 
@@ -410,6 +458,15 @@ const signIn = async (context: Bridge.Context, run: SetupRun) => {
 
 		renewals += 1;
 	}
+
+	record(context, run, {
+		name: BridgeEventName.SignInExpired,
+		text: EXPIRED_ACTIVITY,
+		details: {
+			step: SIGN_IN_STEP,
+			codes: renewals + 1,
+		},
+	});
 
 	report(context, run, {
 		phase: HytaleSetupPhase.Expired,
@@ -447,14 +504,18 @@ const download = async (context: Bridge.Context, run: SetupRun) => {
 	}
 
 	if (line === null) {
-		report(context, run, {
-			phase: HytaleSetupPhase.Failed,
-			step: DOWNLOAD_STEP,
-			message: STALLED_MESSAGE,
-		});
+		fail(context, run, DOWNLOAD_STEP, STALLED_MESSAGE);
 
 		return;
 	}
+
+	record(context, run, {
+		name: BridgeEventName.SetupCompleted,
+		text: DOWNLOADED_ACTIVITY,
+		details: {
+			step: DOWNLOAD_STEP,
+		},
+	});
 
 	report(context, run, {
 		phase: HytaleSetupPhase.Installed,
@@ -488,11 +549,7 @@ const drive = async (context: Bridge.Context, run: SetupRun, plan: () => Promise
 			error: error instanceof Error ? error.message : String(error),
 		});
 
-		report(context, run, {
-			phase: HytaleSetupPhase.Failed,
-			step: run.step,
-			message: failureOf(error),
-		});
+		fail(context, run, run.step, failureOf(error));
 	} finally {
 		stopRun(run);
 	}

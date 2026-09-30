@@ -43,6 +43,21 @@ export const serverArguments = (port: number) => {
 	];
 };
 
+export const serverUpdated = (from: string, to: string): Bridge.Activity => {
+	return {
+		name: BridgeEventName.ServerUpdated,
+		text: {
+			ar: `تم تحديث هايتيل من ${from} إلى ${to}`,
+			en: `Updated Hytale from ${from} to ${to}`,
+		},
+		subject: to,
+		details: {
+			from,
+			to,
+		},
+	};
+};
+
 const stampBootedVersion = async (context: Bridge.Context) => {
 	for (const line of (await context.logs.tail(BOOT_LINES)).toReversed()) {
 		const version = bootedVersion(line);
@@ -58,6 +73,8 @@ const stampBootedVersion = async (context: Bridge.Context) => {
 				from: previous,
 				to: version,
 			});
+
+			context.activity.report(serverUpdated(previous, version));
 		}
 
 		return;

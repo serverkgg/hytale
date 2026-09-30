@@ -18,6 +18,7 @@ import {
 	curseforgeDownloadUrl,
 	curseforgeSha1,
 } from "@serverkgg/bridge/catalogs";
+import { BridgeEventName } from "@serverkgg/bridge/protocol";
 import { readInstallStamp } from "../install";
 import { HytaleStage, PATCHLINE, readSection, SERVER_DIRECTORY, stageOf, UPDATE_SECTION } from "../shared";
 import {
@@ -147,6 +148,76 @@ export const trackedNames = (sidecar: ModsSidecar, id: string) => {
 		.map(([filename]) => filename);
 
 	return matched.length > 0 ? matched : Object.keys(sidecar).filter((filename) => filename === enabledName(id));
+};
+
+const modInstalled = (entry: ModEntry): Bridge.Activity => {
+	return {
+		name: BridgeEventName.ModInstalled,
+		text: {
+			ar: `تم تثبيت مود ${entry.title} (${entry.version})`,
+			en: `Installed mod ${entry.title} (${entry.version})`,
+		},
+		subject: entry.title,
+		details: {
+			provider: CURSEFORGE_PROVIDER,
+			version: entry.version,
+			gameVersion: entry.gameVersion,
+		},
+	};
+};
+
+const modCurrent = (entry: ModEntry): Bridge.Activity => {
+	return {
+		name: BridgeEventName.ModInstalled,
+		text: {
+			ar: `مود ${entry.title} (${entry.version}) مثبّت من قبل وعلى آخر نسخة`,
+			en: `Mod ${entry.title} (${entry.version}) was already installed and up to date`,
+		},
+		subject: entry.title,
+		details: {
+			provider: CURSEFORGE_PROVIDER,
+			version: entry.version,
+			gameVersion: entry.gameVersion,
+			current: true,
+		},
+	};
+};
+
+const modRemoved = (title: string): Bridge.Activity => {
+	return {
+		name: BridgeEventName.ModRemoved,
+		text: {
+			ar: `تمت إزالة مود ${title}`,
+			en: `Removed mod ${title}`,
+		},
+		subject: title,
+	};
+};
+
+const modToggled = (title: string, enabled: boolean): Bridge.Activity => {
+	return enabled
+		? {
+				name: BridgeEventName.ModEnabled,
+				text: {
+					ar: `تم تفعيل مود ${title}`,
+					en: `Enabled mod ${title}`,
+				},
+				subject: title,
+			}
+		: {
+				name: BridgeEventName.ModDisabled,
+				text: {
+					ar: `تم إيقاف مود ${title}`,
+					en: `Disabled mod ${title}`,
+				},
+				subject: title,
+			};
+};
+
+const titleOf = (sidecar: ModsSidecar, filenames: string[], fallback: string) => {
+	const filename = filenames.at(0);
+
+	return (filename ? sidecar[filename]?.title : undefined) ?? enabledName(fallback);
 };
 
 const NOT_READY_NOTE: Bridge.Text = {
@@ -413,6 +484,8 @@ const installProject = async (
 			file: refreshed.fileName,
 		});
 
+		context.activity.report(modCurrent(refreshed));
+
 		return catalogEntry(
 			{
 				name: onDisk,
@@ -478,6 +551,8 @@ const installProject = async (
 		file: entry.fileName,
 	});
 
+	context.activity.report(modInstalled(entry));
+
 	return catalogEntry(
 		{
 			name: entry.fileName,
@@ -493,11 +568,15 @@ const removeEntry = async (context: Bridge.Context, id: string) => {
 	const tracked = trackedNames(sidecar, id);
 
 	if (tracked.length > 0) {
+		const title = titleOf(sidecar, tracked, id);
+
 		for (const filename of tracked) {
 			await forget(context, sidecar, filename);
 		}
 
 		await writeSidecar(context, MODS_DIRECTORY, sidecar);
+
+		context.activity.report(modRemoved(title));
 
 		return;
 	}
@@ -513,6 +592,8 @@ const removeEntry = async (context: Bridge.Context, id: string) => {
 
 	await forget(context, sidecar, name);
 	await writeSidecar(context, MODS_DIRECTORY, sidecar);
+
+	context.activity.report(modRemoved(name));
 };
 
 const toggleEntry = async (context: Bridge.Context, id: string, enabled: boolean) => {
@@ -525,17 +606,27 @@ const toggleEntry = async (context: Bridge.Context, id: string, enabled: boolean
 					enabledName(id),
 				];
 
+	let moved = false;
+
 	for (const name of names) {
 		const active = `${MODS_DIRECTORY}/${name}`;
 		const parked = `${active}${DISABLED_SUFFIX}`;
 
 		if (enabled && (await context.files.exists(parked))) {
 			await context.files.move(parked, active);
+
+			moved = true;
 		}
 
 		if (!enabled && (await context.files.exists(active))) {
 			await context.files.move(active, parked);
+
+			moved = true;
 		}
+	}
+
+	if (moved) {
+		context.activity.report(modToggled(titleOf(sidecar, tracked, id), enabled));
 	}
 };
 

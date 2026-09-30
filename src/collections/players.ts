@@ -4,6 +4,20 @@ import { banPlayer, kickPlayer, playerRoster, rosterPresenceOf, rosterUsernameOf
 
 const REFRESH_SECONDS = 20;
 
+const kicked = (username: string): Bridge.Text => {
+	return {
+		ar: `تم طرد ${username}`,
+		en: `Kicked ${username}`,
+	};
+};
+
+const banned = (username: string): Bridge.Text => {
+	return {
+		ar: `تم حظر ${username}`,
+		en: `Banned ${username}`,
+	};
+};
+
 export const players: Bridge.Collection = {
 	kind: BridgeKind.Collection,
 	requiresRunning: true,
@@ -19,6 +33,12 @@ export const players: Bridge.Collection = {
 
 			context.emit(BridgeEventName.PlayerKicked, rosterPresenceOf(row));
 
+			context.activity.report({
+				name: BridgeEventName.PlayerKicked,
+				text: kicked(username),
+				subject: username,
+			});
+
 			context.log("kicked a player", {
 				username,
 			});
@@ -29,6 +49,12 @@ export const players: Bridge.Collection = {
 			await banPlayer(context, username);
 
 			context.emit(BridgeEventName.PlayerBanned, rosterPresenceOf(row));
+
+			context.activity.report({
+				name: BridgeEventName.PlayerBanned,
+				text: banned(username),
+				subject: username,
+			});
 
 			context.log("banned a player", {
 				username,

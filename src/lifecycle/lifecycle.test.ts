@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { BridgeEventName } from "@serverkgg/bridge/protocol";
 import { bootedVersion, heapFor, initialHeapFor, jvmOptions, SERVER_READY, SERVER_STOPPED } from "../shared";
-import { bootstrapArguments, serverArguments } from "./lifecycle";
+import { bootstrapArguments, serverArguments, serverUpdated } from "./lifecycle";
 
 const ESCAPE = String.fromCodePoint(0x1b);
 
@@ -137,5 +138,22 @@ describe("bootedVersion", () => {
 
 	test("answers null on any other line", () => {
 		expect(bootedVersion("Hytale Server Booted!")).toBeNull();
+	});
+});
+
+describe("serverUpdated", () => {
+	test("names both versions of an update the game applied by itself", () => {
+		expect(serverUpdated("0.6.3", "0.6.4")).toEqual({
+			name: BridgeEventName.ServerUpdated,
+			text: {
+				ar: "تم تحديث هايتيل من 0.6.3 إلى 0.6.4",
+				en: "Updated Hytale from 0.6.3 to 0.6.4",
+			},
+			subject: "0.6.4",
+			details: {
+				from: "0.6.3",
+				to: "0.6.4",
+			},
+		});
 	});
 });

@@ -1,7 +1,9 @@
-import { describe, expect, test } from "bun:test";
-import { BridgeDetailTone } from "@serverkgg/bridge";
-import { HytaleAuthState, HytaleStage } from "../shared";
-import { badgesOf, nextStep } from "./login";
+import { afterEach, describe, expect, test } from "bun:test";
+import { type Bridge, BridgeDetailTone } from "@serverkgg/bridge";
+import { BridgeEventName } from "@serverkgg/bridge/protocol";
+import { ACCOUNT_TARGET, stopSetup } from "../setup";
+import { AUTH_LOGOUT_COMMAND, HytaleAuthState, HytaleStage } from "../shared";
+import { badgesOf, LOGIN_LOGOUT_ACTION, LOGIN_SWITCH_ACTION, login, nextStep } from "./login";
 
 const labels = (stage: HytaleStage, state: HytaleAuthState, profile: string | null = null) => {
 	return badgesOf(stage, state, profile).map((badge) => badge.label.en);
@@ -85,5 +87,127 @@ describe("nextStep", () => {
 
 		expect(step?.ar).not.toMatch(/[A-Za-z]{3}/);
 		expect(step?.en).not.toMatch(/\p{Script=Arabic}/u);
+	});
+});
+
+interface AccountHarness {
+	context: Bridge.Context;
+	sent: string[];
+	reported: Bridge.Activity[];
+}
+
+const accountHarness = (): AccountHarness => {
+	const sent: string[] = [];
+	const reported: Bridge.Activity[] = [];
+
+	const context = {
+		files: {
+			async exists() {
+				return false;
+			},
+		},
+
+		logs: {
+			async tail() {
+				return [];
+			},
+
+			follow() {
+				return () => {
+					return;
+				};
+			},
+		},
+
+		async command(input: string) {
+			sent.push(input);
+
+			if (input !== AUTH_LOGOUT_COMMAND) {
+				await new Promise<void>(() => {
+					return;
+				});
+			}
+		},
+
+		setup: {
+			report() {
+				return;
+			},
+
+			clear() {
+				return;
+			},
+		},
+
+		activity: {
+			report(entry: Bridge.Activity) {
+				reported.push(entry);
+			},
+		},
+
+		log: Object.assign(
+			() => {
+				return;
+			},
+			{
+				warn: () => {
+					return;
+				},
+			},
+		),
+	};
+
+	return {
+		context: context as unknown as Bridge.Context,
+		sent,
+		reported,
+	};
+};
+
+describe("telling the owner what happened to the account", () => {
+	afterEach(() => {
+		stopSetup();
+	});
+
+	test("says the account was switched and a new sign-in started", async () => {
+		const { context, sent, reported } = accountHarness();
+
+		await login.actions?.[LOGIN_SWITCH_ACTION]?.(context, {});
+
+		expect(sent.at(0)).toBe(AUTH_LOGOUT_COMMAND);
+		expect(reported).toEqual([
+			{
+				name: BridgeEventName.SettingsApplied,
+				text: {
+					ar: "تم تبديل حساب هايتيل، وبدأ تسجيل دخول جديد",
+					en: "Switched the Hytale account, a new sign-in started",
+				},
+				details: {
+					target: ACCOUNT_TARGET,
+					action: LOGIN_SWITCH_ACTION,
+				},
+			},
+		]);
+	});
+
+	test("says the server was signed out", async () => {
+		const { context, reported } = accountHarness();
+
+		await login.actions?.[LOGIN_LOGOUT_ACTION]?.(context, {});
+
+		expect(
+			reported.map((entry) => [
+				entry.name,
+				entry.details?.target,
+				entry.details?.action,
+			]),
+		).toEqual([
+			[
+				BridgeEventName.SettingsApplied,
+				ACCOUNT_TARGET,
+				LOGIN_LOGOUT_ACTION,
+			],
+		]);
+		expect(reported.at(0)?.text.en).toStartWith("Signed the server out of its Hytale account");
 	});
 });

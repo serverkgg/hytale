@@ -1,5 +1,6 @@
 import { type Bridge, BridgeDetailFormat, BridgeDetailTone, BridgeKind } from "@serverkgg/bridge";
-import { reportSignedOut, restartSignIn } from "../setup";
+import { BridgeEventName } from "@serverkgg/bridge/protocol";
+import { ACCOUNT_TARGET, reportSignedOut, restartSignIn } from "../setup";
 import { endDeviceLogin, type HytaleAuthReport, HytaleAuthState, HytaleStage, readAuth, stageOf } from "../shared";
 
 export const LOGIN_SWITCH_ACTION = "switch";
@@ -83,6 +84,27 @@ const NEXT_DOWNLOADING: Bridge.Text = {
 const NEXT_SIGNED_OUT: Bridge.Text = {
 	ar: "سيرفرك مركّب بس مسجّل خروج، وما يستقبل لاعبين. اضغط «بدّل الحساب» وبيطلع لك رمز دخول جديد في صفحة التركيب.",
 	en: "Your server is installed but signed out, so it takes no players. Press Switch account and a new sign-in code appears on the setup page.",
+};
+
+const SWITCHED_ACTIVITY: Bridge.Text = {
+	ar: "تم تبديل حساب هايتيل، وبدأ تسجيل دخول جديد",
+	en: "Switched the Hytale account, a new sign-in started",
+};
+
+const SIGNED_OUT_ACTIVITY: Bridge.Text = {
+	ar: "تم تسجيل خروج السيرفر من حساب هايتيل، وما يستقبل لاعبين لين يسجّل دخول",
+	en: "Signed the server out of its Hytale account, it takes no players until it signs in again",
+};
+
+const reportAccount = (context: Bridge.Context, action: string, text: Bridge.Text) => {
+	context.activity.report({
+		name: BridgeEventName.SettingsApplied,
+		text,
+		details: {
+			target: ACCOUNT_TARGET,
+			action,
+		},
+	});
 };
 
 const stageBadge = (stage: HytaleStage, state: HytaleAuthState) => {
@@ -181,6 +203,8 @@ export const login: Bridge.Detail = {
 
 			void restartSignIn(context);
 
+			reportAccount(context, LOGIN_SWITCH_ACTION, SWITCHED_ACTIVITY);
+
 			return null;
 		},
 
@@ -188,6 +212,8 @@ export const login: Bridge.Detail = {
 			await endDeviceLogin(context);
 
 			reportSignedOut(context);
+
+			reportAccount(context, LOGIN_LOGOUT_ACTION, SIGNED_OUT_ACTIVITY);
 
 			return null;
 		},

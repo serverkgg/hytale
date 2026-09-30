@@ -12,7 +12,12 @@ interface Emitted {
 	payload: Bridge.Values | undefined;
 }
 
-const contextWith = (options: { tails?: string[][]; sent?: string[]; emitted?: Emitted[] }) => {
+const contextWith = (options: {
+	tails?: string[][];
+	sent?: string[];
+	emitted?: Emitted[];
+	reported?: Bridge.Activity[];
+}) => {
 	const tails = options.tails ?? [];
 
 	let read = 0;
@@ -41,6 +46,11 @@ const contextWith = (options: { tails?: string[][]; sent?: string[]; emitted?: E
 				event,
 				payload,
 			});
+		},
+		activity: {
+			report: (entry: Bridge.Activity) => {
+				options.reported?.push(entry);
+			},
 		},
 		log: () => undefined,
 	} as unknown as Bridge.Context;
@@ -132,5 +142,59 @@ describe("moderating a player from the roster", () => {
 		]);
 		expect(emitted.at(0)?.event).toBe(BridgeEventName.PlayerBanned);
 		expect(emitted.at(0)?.payload?.playerId).toBe(MESLZY_ID);
+	});
+});
+
+describe("telling the owner who was moderated", () => {
+	const row = {
+		id: MESLZY_ID,
+		name: "Mohammed",
+		username: "meslzy",
+	};
+
+	test("names the kicked player by the account name", async () => {
+		const reported: Bridge.Activity[] = [];
+
+		await players.actions?.kick?.(
+			contextWith({
+				reported,
+			}),
+			row,
+			{},
+		);
+
+		expect(reported).toEqual([
+			{
+				name: BridgeEventName.PlayerKicked,
+				text: {
+					ar: "تم طرد meslzy",
+					en: "Kicked meslzy",
+				},
+				subject: "meslzy",
+			},
+		]);
+	});
+
+	test("names the banned player by the account name", async () => {
+		const reported: Bridge.Activity[] = [];
+
+		await players.actions?.ban?.(
+			contextWith({
+				reported,
+			}),
+			row,
+			{},
+		);
+
+		expect(reported).toEqual([
+			{
+				name: BridgeEventName.PlayerBanned,
+				text: {
+					ar: "تم حظر meslzy",
+					en: "Banned meslzy",
+				},
+				subject: "meslzy",
+			},
+		]);
 	});
 });

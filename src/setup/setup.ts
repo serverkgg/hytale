@@ -1,5 +1,6 @@
 import { type Bridge, BridgeKind, BridgeSetupStepKind } from "@serverkgg/bridge";
 import { GuideOpenTab } from "@serverkgg/bridge/guides";
+import { BridgeEventName } from "@serverkgg/bridge/protocol";
 import {
 	advanceSetup,
 	CANCEL_ACTION,
@@ -20,6 +21,39 @@ export const SERVER_SECTION = "server";
 export const NAME_STEP = "name";
 
 export const INVITE_STEP = "invite";
+
+export const ACCOUNT_TARGET = "account";
+
+const RETRIED_SIGN_IN: Bridge.Text = {
+	ar: "تمت إعادة تسجيل دخول السيرفر في هايتيل",
+	en: "Restarted the Hytale sign-in",
+};
+
+const RETRIED_DOWNLOAD: Bridge.Text = {
+	ar: "تمت إعادة تنزيل ملفات هايتيل",
+	en: "Restarted the Hytale game file download",
+};
+
+const RENEWED_SIGN_IN: Bridge.Text = {
+	ar: "تم طلب رمز دخول جديد لهايتيل",
+	en: "Requested a new Hytale sign-in code",
+};
+
+const CANCELLED_SIGN_IN: Bridge.Text = {
+	ar: "تم إلغاء تسجيل دخول السيرفر في هايتيل",
+	en: "Cancelled the Hytale sign-in",
+};
+
+const reportAction = (context: Bridge.Context, step: string, action: string, text: Bridge.Text) => {
+	context.activity.report({
+		name: BridgeEventName.SetupAction,
+		text,
+		details: {
+			step,
+			action,
+		},
+	});
+};
 
 export const setup: Bridge.Setup = {
 	kind: BridgeKind.Setup,
@@ -96,6 +130,8 @@ export const setup: Bridge.Setup = {
 		if (action === RETRY_ACTION) {
 			await advanceSetup(context);
 
+			reportAction(context, step, action, step === SIGN_IN_STEP ? RETRIED_SIGN_IN : RETRIED_DOWNLOAD);
+
 			return;
 		}
 
@@ -106,11 +142,15 @@ export const setup: Bridge.Setup = {
 		if (action === RENEW_ACTION) {
 			await renewSignIn(context);
 
+			reportAction(context, step, action, RENEWED_SIGN_IN);
+
 			return;
 		}
 
 		if (action === CANCEL_ACTION) {
 			await cancelSignIn(context);
+
+			reportAction(context, step, action, CANCELLED_SIGN_IN);
 
 			return;
 		}

@@ -9,6 +9,7 @@ import {
 } from "@serverkgg/bridge";
 import { CURSEFORGE_API, type CurseforgeFile, CurseforgeReleaseType } from "@serverkgg/bridge/catalogs";
 import { INSTALL_STAMP_FILE } from "@serverkgg/bridge/install";
+import { BridgeEventName } from "@serverkgg/bridge/protocol";
 import { PAYLOAD_FILES } from "../shared";
 import {
 	catalogEntry,
@@ -636,6 +637,7 @@ interface CatalogServer {
 	context: Bridge.Context;
 	stored: Map<string, string>;
 	downloads: string[];
+	reported: Bridge.Activity[];
 }
 
 const catalogServer = (): CatalogServer => {
@@ -660,6 +662,7 @@ const catalogServer = (): CatalogServer => {
 		],
 	]);
 	const downloads: string[] = [];
+	const reported: Bridge.Activity[] = [];
 	const everyFile = [
 		...projectFiles,
 		foreignFile,
@@ -715,6 +718,11 @@ const catalogServer = (): CatalogServer => {
 			json: async (url: string) => answer(url),
 		},
 		log,
+		activity: {
+			report: (entry: Bridge.Activity) => {
+				reported.push(entry);
+			},
+		},
 		files: {
 			exists: async (path: string) => stored.has(path),
 			read: async (path: string) => stored.get(path) ?? "",
@@ -740,6 +748,7 @@ const catalogServer = (): CatalogServer => {
 		context,
 		stored,
 		downloads,
+		reported,
 	};
 };
 
@@ -919,5 +928,93 @@ describe("leaving every mod change a live invoke", () => {
 			expect(isReadAction(action)).toBe(true);
 			expect(mods.protectedActions ?? []).not.toContain(action);
 		}
+	});
+});
+
+describe("telling the owner what a mod change did", () => {
+	test("names the mod, the release and the game version it installed", async () => {
+		const { context, reported } = catalogServer();
+
+		await mods.install(context, String(PROJECT_ID), "5544330");
+
+		expect(reported).toEqual([
+			{
+				name: BridgeEventName.ModInstalled,
+				text: {
+					ar: "تم تثبيت مود HeroCore API (HeroCore 1.4.0)",
+					en: "Installed mod HeroCore API (HeroCore 1.4.0)",
+				},
+				subject: "HeroCore API",
+				details: {
+					provider: "curseforge",
+					version: "HeroCore 1.4.0",
+					gameVersion: "0.6.3",
+				},
+			},
+		]);
+	});
+
+	test("says the mod was already current instead of claiming a second install", async () => {
+		const { context, reported, downloads } = catalogServer();
+
+		await mods.install(context, String(PROJECT_ID));
+		await mods.install(context, String(PROJECT_ID));
+
+		expect(downloads).toHaveLength(1);
+		expect(reported.at(1)?.name).toBe(BridgeEventName.ModInstalled);
+		expect(reported.at(1)?.details?.current).toBe(true);
+		expect(reported.at(1)?.text.en).toBe("Mod HeroCore API (HeroCore 1.4.2) was already installed and up to date");
+	});
+
+	test("names the mod it removed", async () => {
+		const { context, reported } = catalogServer();
+
+		await mods.install(context, String(PROJECT_ID));
+		await mods.remove?.(context, String(PROJECT_ID));
+
+		expect(reported.at(1)).toEqual({
+			name: BridgeEventName.ModRemoved,
+			text: {
+				ar: "تمت إزالة مود HeroCore API",
+				en: "Removed mod HeroCore API",
+			},
+			subject: "HeroCore API",
+		});
+	});
+
+	test("names the mod it turned off and back on", async () => {
+		const { context, reported } = catalogServer();
+
+		await mods.install(context, String(PROJECT_ID));
+		await mods.toggle?.(context, String(PROJECT_ID), false);
+		await mods.toggle?.(context, String(PROJECT_ID), true);
+
+		expect(
+			reported.slice(1).map((entry) => [
+				entry.name,
+				entry.subject,
+				entry.text.en,
+			]),
+		).toEqual([
+			[
+				BridgeEventName.ModDisabled,
+				"HeroCore API",
+				"Disabled mod HeroCore API",
+			],
+			[
+				BridgeEventName.ModEnabled,
+				"HeroCore API",
+				"Enabled mod HeroCore API",
+			],
+		]);
+	});
+
+	test("reports nothing when a toggle moves no file", async () => {
+		const { context, reported } = catalogServer();
+
+		await mods.install(context, String(PROJECT_ID));
+		await mods.toggle?.(context, String(PROJECT_ID), true);
+
+		expect(reported).toHaveLength(1);
 	});
 });

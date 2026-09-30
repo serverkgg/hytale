@@ -1,11 +1,20 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, jest, test } from "bun:test";
 import { type Bridge, BridgeSetupPromptKind, BridgeSetupStepState } from "@serverkgg/bridge";
-import { AUTH_CANCEL_COMMAND, AUTH_LOGIN_COMMAND, AUTH_STATUS_COMMAND, HytaleAuthState, HytaleStage } from "../shared";
+import { BridgeEventName } from "@serverkgg/bridge/protocol";
+import {
+	AUTH_CANCEL_COMMAND,
+	AUTH_LOGIN_COMMAND,
+	AUTH_STATUS_COMMAND,
+	AUTH_SUCCEEDED,
+	HytaleAuthState,
+	HytaleStage,
+} from "../shared";
 import {
 	advanceSetup,
 	cancelSignIn,
 	DOWNLOAD_COMPLETE,
 	DOWNLOAD_PROGRESS,
+	DOWNLOAD_STEP,
 	exhausted,
 	HytaleSetupPhase,
 	progressFrom,
@@ -13,6 +22,7 @@ import {
 	renewSignIn,
 	restartSignIn,
 	runtimeOf,
+	SIGN_IN_STEP,
 	signedInAt,
 	startingRuntime,
 	stopSetup,
@@ -347,6 +357,12 @@ const harness = (cancelsBeforeFailing = Number.POSITIVE_INFINITY): SetupHarness 
 			},
 		},
 
+		activity: {
+			report() {
+				return;
+			},
+		},
+
 		log: Object.assign(
 			() => {
 				return;
@@ -431,5 +447,290 @@ describe("the run a setup entry point waits on", () => {
 				phase: HytaleSetupPhase.Starting,
 			}),
 		]);
+	});
+});
+
+enum DeviceAnswer {
+	Code = "code",
+	Nothing = "nothing",
+}
+
+interface FlowScript {
+	device: DeviceAnswer;
+	signsIn: boolean;
+	downloads: boolean;
+}
+
+interface FlowHarness {
+	context: Bridge.Context;
+	reported: Bridge.Activity[];
+	runtimes: Bridge.SetupRuntime[];
+}
+
+const SIGNED_IN_LINE = "[2026/09/04 09:57:02   INFO]   [AuthManager] Authentication successful! Mode: OAuth Device";
+
+const DEVICE_LINES = [
+	`Visit ${DEVICE.url} to sign in`,
+	"The code expires in 599 seconds",
+];
+
+const flowHarness = (script: FlowScript): FlowHarness => {
+	const reported: Bridge.Activity[] = [];
+	const runtimes: Bridge.SetupRuntime[] = [];
+	const lines: string[] = [];
+
+	const printed = (pattern: RegExp) => {
+		if (pattern === AUTH_SUCCEEDED && script.signsIn) {
+			return SIGNED_IN_LINE;
+		}
+
+		return pattern === DOWNLOAD_COMPLETE && script.downloads ? COMPLETE_LINE : null;
+	};
+
+	const context = {
+		files: {
+			async exists() {
+				return false;
+			},
+		},
+
+		logs: {
+			async tail() {
+				return [
+					...lines,
+				];
+			},
+
+			follow(pattern: RegExp, onMatch: (match: RegExpMatchArray) => void) {
+				const match = printed(pattern)?.match(pattern) ?? null;
+
+				if (match !== null) {
+					queueMicrotask(() => {
+						onMatch(match);
+					});
+				}
+
+				return () => {
+					return;
+				};
+			},
+		},
+
+		async command(input: string) {
+			if (input === AUTH_STATUS_COMMAND) {
+				lines.push("Not authenticated");
+			}
+
+			if (input === AUTH_LOGIN_COMMAND && script.device === DeviceAnswer.Code) {
+				lines.push(...DEVICE_LINES);
+			}
+		},
+
+		setup: {
+			report(runtime: Bridge.SetupRuntime) {
+				runtimes.push(runtime);
+			},
+
+			clear() {
+				return;
+			},
+		},
+
+		activity: {
+			report(entry: Bridge.Activity) {
+				reported.push(entry);
+			},
+		},
+
+		log: Object.assign(
+			() => {
+				return;
+			},
+			{
+				warn: () => {
+					return;
+				},
+			},
+		),
+	};
+
+	return {
+		context: context as unknown as Bridge.Context,
+		reported,
+		runtimes,
+	};
+};
+
+const FLOW_ROUNDS = 400;
+
+const FLOW_STEP_MS = 60_000;
+
+const settled = (runtimes: Bridge.SetupRuntime[], kind: BridgeSetupPromptKind) => {
+	return runtimes.some((runtime) => runtime.prompt?.kind === kind);
+};
+
+const runFlow = async (done: () => boolean) => {
+	for (let round = 0; round < FLOW_ROUNDS && !done(); round += 1) {
+		jest.advanceTimersByTime(FLOW_STEP_MS);
+
+		await new Promise<void>((resolve) => {
+			queueMicrotask(resolve);
+		});
+	}
+};
+
+const expectNoSignInSecret = (reported: Bridge.Activity[]) => {
+	const written = JSON.stringify(reported);
+
+	expect(written).not.toContain(DEVICE.code);
+	expect(written).not.toContain("user_code");
+	expect(written).not.toContain("https://");
+};
+
+describe("the activity the setup flow reports on its own", () => {
+	afterEach(() => {
+		stopSetup();
+		jest.useRealTimers();
+	});
+
+	test("reports the sign-in and the finished download as two completed steps", async () => {
+		jest.useFakeTimers();
+
+		const { context, reported, runtimes } = flowHarness({
+			device: DeviceAnswer.Code,
+			signsIn: true,
+			downloads: true,
+		});
+
+		await advanceSetup(context);
+		await runFlow(() => {
+			return runtimes.some((runtime) => runtime.prompt?.message.en.startsWith("The download is done") === true);
+		});
+
+		expect(
+			reported.map((entry) => [
+				entry.name,
+				entry.details?.step,
+			]),
+		).toEqual([
+			[
+				BridgeEventName.SetupCompleted,
+				SIGN_IN_STEP,
+			],
+			[
+				BridgeEventName.SetupCompleted,
+				DOWNLOAD_STEP,
+			],
+		]);
+		expect(reported.at(0)?.text.en).toBe("Signed the server in with a Hytale account");
+		expectNoSignInSecret(reported);
+	});
+
+	test("reports the sign-in expired once every renewal ran out", async () => {
+		jest.useFakeTimers();
+
+		const { context, reported, runtimes } = flowHarness({
+			device: DeviceAnswer.Code,
+			signsIn: false,
+			downloads: false,
+		});
+
+		await advanceSetup(context);
+		await runFlow(() => {
+			return settled(runtimes, BridgeSetupPromptKind.Action);
+		});
+
+		expect(reported).toEqual([
+			{
+				name: BridgeEventName.SignInExpired,
+				text: {
+					ar: "انتهى وقت كل رموز الدخول قبل ما يكتمل تسجيل الدخول في هايتيل",
+					en: "Every sign-in code ran out before the Hytale sign-in finished",
+				},
+				details: {
+					step: SIGN_IN_STEP,
+					codes: RENEW_LIMIT + 1,
+				},
+			},
+		]);
+		expectNoSignInSecret(reported);
+	});
+
+	test("reports a stalled download with the text the failed prompt shows", async () => {
+		jest.useFakeTimers();
+
+		const { context, reported, runtimes } = flowHarness({
+			device: DeviceAnswer.Code,
+			signsIn: true,
+			downloads: false,
+		});
+
+		await advanceSetup(context);
+		await runFlow(() => {
+			return settled(runtimes, BridgeSetupPromptKind.Failed);
+		});
+
+		const failed = runtimes.find((runtime) => runtime.prompt?.kind === BridgeSetupPromptKind.Failed);
+		const rejected = reported.at(-1);
+
+		expect(rejected?.name).toBe(BridgeEventName.SetupRejected);
+		expect(rejected?.details).toEqual({
+			step: DOWNLOAD_STEP,
+		});
+		expect(rejected?.text).toEqual(failed?.prompt?.message);
+		expect(rejected?.text.en).toStartWith("The download stopped without finishing");
+		expectNoSignInSecret(reported);
+	});
+
+	test("reports a step the flow could not carry on with the text the failed prompt shows", async () => {
+		jest.useFakeTimers();
+
+		const { context, reported, runtimes } = flowHarness({
+			device: DeviceAnswer.Nothing,
+			signsIn: false,
+			downloads: false,
+		});
+
+		await advanceSetup(context);
+		await runFlow(() => {
+			return settled(runtimes, BridgeSetupPromptKind.Failed);
+		});
+
+		const failed = runtimes.find((runtime) => runtime.prompt?.kind === BridgeSetupPromptKind.Failed);
+
+		expect(reported).toEqual([
+			{
+				name: BridgeEventName.SetupRejected,
+				text: failed?.prompt?.message ?? {
+					ar: "",
+					en: "",
+				},
+				details: {
+					step: SIGN_IN_STEP,
+				},
+			},
+		]);
+		expect(reported.at(0)?.text.en).toStartWith("Hytale printed no device code");
+	});
+
+	test("reports nothing for a run that was stopped before it finished", async () => {
+		jest.useFakeTimers();
+
+		const { context, reported, runtimes } = flowHarness({
+			device: DeviceAnswer.Code,
+			signsIn: true,
+			downloads: true,
+		});
+
+		await advanceSetup(context);
+
+		stopSetup();
+
+		await runFlow(() => {
+			return false;
+		});
+
+		expect(runtimes).toHaveLength(1);
+		expect(reported).toEqual([]);
 	});
 });
