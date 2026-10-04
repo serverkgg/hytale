@@ -1,34 +1,34 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import type { Bridge } from "@serverkgg/bridge";
 import { backupValues, missingValues, reclaimRestoredFiles, seedValues, updateValues } from "./serverConfig";
 
 describe("updateValues", () => {
-	test("applies an update on a schedule, because one player who never leaves must not lock everyone else out", () => {
+	it("applies an update on a schedule, because one player who never leaves must not lock everyone else out", () => {
 		expect(updateValues().AutoApplyMode).toBe("Scheduled");
 		expect(updateValues().AutoApplyDelayMinutes).toBe(15);
 		expect(updateValues().Enabled).toBe(true);
 	});
 
-	test("takes a snapshot of the world and the config before it applies one", () => {
+	it("takes a snapshot of the world and the config before it applies one", () => {
 		expect(updateValues().RunBackupBeforeUpdate).toBe(true);
 		expect(updateValues().BackupConfigBeforeUpdate).toBe(true);
 	});
 
-	test("checks the release patchline once an hour", () => {
+	it("checks the release patchline once an hour", () => {
 		expect(updateValues().Patchline).toBe("release");
 		expect(updateValues().CheckIntervalSeconds).toBe(3600);
 	});
 });
 
 describe("backupValues", () => {
-	test("keeps the server's own snapshots small, because the platform's backups are the ones a player restores from", () => {
+	it("keeps the server's own snapshots small, because the platform's backups are the ones a player restores from", () => {
 		expect(backupValues().MaxCount).toBe(2);
 		expect(backupValues().ArchiveMaxCount).toBe(1);
 	});
 });
 
 describe("seedValues", () => {
-	test("names the server after its code", () => {
+	it("names the server after its code", () => {
 		expect(
 			seedValues({
 				code: "srv-1234",
@@ -37,7 +37,7 @@ describe("seedValues", () => {
 		).toBe("Serverk srv-1234");
 	});
 
-	test("sizes the player slots and the view distance from the plan", () => {
+	it("sizes the player slots and the view distance from the plan", () => {
 		expect(
 			seedValues({
 				code: "srv-1234",
@@ -59,7 +59,7 @@ describe("seedValues", () => {
 		});
 	});
 
-	test("never recommends more players than hytale can hold", () => {
+	it("never recommends more players than hytale can hold", () => {
 		expect(
 			seedValues({
 				code: "srv-1234",
@@ -70,7 +70,7 @@ describe("seedValues", () => {
 });
 
 describe("missingValues", () => {
-	test("seeds only what the config does not already answer", () => {
+	it("seeds only what the config does not already answer", () => {
 		expect(
 			missingValues(
 				{
@@ -89,7 +89,7 @@ describe("missingValues", () => {
 		});
 	});
 
-	test("leaves a config the player already filled alone", () => {
+	it("leaves a config the player already filled alone", () => {
 		expect(
 			missingValues(
 				{
@@ -137,7 +137,7 @@ const reclaimContext = (seed: Record<string, string> = {}) => {
 };
 
 describe("reclaimRestoredFiles", () => {
-	test("brings a restored sign-in and settings back beside the installer, so a restore does not cost the customer the sign-in", async () => {
+	it("brings a restored sign-in and settings back beside the installer, so a restore does not cost the customer the sign-in", async () => {
 		const { context, stored } = reclaimContext({
 			"Server/auth.enc": "sealed",
 			"Server/auth.key": "key",
@@ -159,7 +159,7 @@ describe("reclaimRestoredFiles", () => {
 		expect(stored.get("Server/universe")).toBe("world");
 	});
 
-	test("lets the restored copy win over one the installer already seeded", async () => {
+	it("lets the restored copy win over one the installer already seeded", async () => {
 		const { context, stored } = reclaimContext({
 			"Server/config.json": '{"ServerName":"My world"}',
 			"config.json": '{"ServerName":"Hytale Server"}',
@@ -172,7 +172,7 @@ describe("reclaimRestoredFiles", () => {
 		expect(stored.get("config.json")).toBe('{"ServerName":"My world"}');
 	});
 
-	test("does nothing on a server that never installed the payload", async () => {
+	it("does nothing on a server that never installed the payload", async () => {
 		const { context, stored } = reclaimContext({
 			"config.json": '{"ServerName":"Hytale Server"}',
 		});

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import {
 	DEFAULT_DEVICE_CODE_TTL_SECONDS,
 	HytaleAuthState,
@@ -32,7 +32,7 @@ const SIGNED_OUT_STATUS = [
 ];
 
 describe("parseDeviceCode", () => {
-	test("reads the code, the link and the expiry out of the block the server prints", () => {
+	it("reads the code, the link and the expiry out of the block the server prints", () => {
 		expect(parseDeviceCode(DEVICE_BLOCK)).toEqual({
 			code: "FnM4EEUw",
 			url: "https://oauth.accounts.hytale.com/oauth2/device/verify?user_code=FnM4EEUw",
@@ -40,7 +40,7 @@ describe("parseDeviceCode", () => {
 		});
 	});
 
-	test("falls back to the documented ttl when the waiting line scrolled past", () => {
+	it("falls back to the documented ttl when the waiting line scrolled past", () => {
 		expect(
 			parseDeviceCode([
 				"Or visit: https://accounts.hytale.com/device?user_code=ABCD-1234",
@@ -52,7 +52,7 @@ describe("parseDeviceCode", () => {
 		});
 	});
 
-	test("ignores the bare verification url with no code on it", () => {
+	it("ignores the bare verification url with no code on it", () => {
 		expect(
 			parseDeviceCode([
 				"Visit: https://oauth.accounts.hytale.com/oauth2/device/verify",
@@ -61,13 +61,13 @@ describe("parseDeviceCode", () => {
 		).toBeNull();
 	});
 
-	test("answers null when nothing was printed", () => {
+	it("answers null when nothing was printed", () => {
 		expect(parseDeviceCode([])).toBeNull();
 	});
 });
 
 describe("parseProfile", () => {
-	test("keeps the display name and drops the account id hytale prints beside it", () => {
+	it("keeps the display name and drops the account id hytale prints beside it", () => {
 		expect(
 			parseProfile([
 				"Profile: Meslzy (0f9c5e6a-4b1d-4e2f-9a77-3c9b1f0e5d21)",
@@ -75,7 +75,7 @@ describe("parseProfile", () => {
 		).toBe("Meslzy");
 	});
 
-	test("reads a profile line that carries the name alone", () => {
+	it("reads a profile line that carries the name alone", () => {
 		expect(
 			parseProfile([
 				"Profile: meslzy",
@@ -83,11 +83,11 @@ describe("parseProfile", () => {
 		).toBe("meslzy");
 	});
 
-	test("answers null on the empty profile line a signed out server prints", () => {
+	it("answers null on the empty profile line a signed out server prints", () => {
 		expect(parseProfile(SIGNED_OUT_STATUS)).toBeNull();
 	});
 
-	test("answers null when the status printed no profile line at all", () => {
+	it("answers null when the status printed no profile line at all", () => {
 		expect(
 			parseProfile([
 				"Token Source: OAuth Device",
@@ -97,14 +97,14 @@ describe("parseProfile", () => {
 });
 
 describe("parseAuthReport", () => {
-	test("reads a server that never signed in, even though the line above says Authenticated", () => {
+	it("reads a server that never signed in, even though the line above says Authenticated", () => {
 		const report = parseAuthReport(SIGNED_OUT_STATUS);
 
 		expect(report.state).toBe(HytaleAuthState.SignedOut);
 		expect(report.mode).toBeNull();
 	});
 
-	test("reads a signed in server off its token source", () => {
+	it("reads a signed in server off its token source", () => {
 		const report = parseAuthReport([
 			"=== Server Authentication Status ===",
 			"Connection Auth: Authenticated (mTLS + JWT)",
@@ -119,7 +119,7 @@ describe("parseAuthReport", () => {
 		expect(report.mode).toBe("OAuth Device");
 	});
 
-	test("reads a server whose token source survived but whose session token did not", () => {
+	it("reads a server whose token source survived but whose session token did not", () => {
 		expect(
 			parseAuthReport([
 				"Token Source: OAuth Device",
@@ -128,7 +128,7 @@ describe("parseAuthReport", () => {
 		).toBe(HytaleAuthState.SignedOut);
 	});
 
-	test("reads a server that just logged out", () => {
+	it("reads a server that just logged out", () => {
 		expect(
 			parseAuthReport([
 				"Server logged out. Previous mode: OAUTH_STORE",
@@ -136,7 +136,7 @@ describe("parseAuthReport", () => {
 		).toBe(HytaleAuthState.SignedOut);
 	});
 
-	test("reads the success line the login prints", () => {
+	it("reads the success line the login prints", () => {
 		expect(
 			parseAuthReport([
 				"Authentication successful! Mode: OAUTH_DEVICE",
@@ -151,7 +151,7 @@ describe("parseAuthReport", () => {
 		});
 	});
 
-	test("reads the account name off the profile line of a signed in server", () => {
+	it("reads the account name off the profile line of a signed in server", () => {
 		expect(
 			parseAuthReport([
 				"Token Source: OAuth Device",
@@ -161,11 +161,11 @@ describe("parseAuthReport", () => {
 		).toBe("Meslzy");
 	});
 
-	test("claims no account for a server that never signed in, even though it prints an empty profile line", () => {
+	it("claims no account for a server that never signed in, even though it prints an empty profile line", () => {
 		expect(parseAuthReport(SIGNED_OUT_STATUS).profile).toBeNull();
 	});
 
-	test("stays unknown when the console said something we do not recognise", () => {
+	it("stays unknown when the console said something we do not recognise", () => {
 		expect(
 			parseAuthReport([
 				"something else entirely",

@@ -33,7 +33,7 @@ export const messageArgument = (args: Bridge.Values) => {
 
 	if (message.length === 0) {
 		throw new BridgeUserError({
-			ar: "اكتب الرسالة أول.",
+			ar: "اكتب الرسالة أولًا.",
 			en: "Write the message first.",
 		});
 	}
@@ -52,8 +52,8 @@ export const usernameArgument = (raw: string) => {
 
 	if (!/^[A-Za-z0-9_.-]{1,32}$/.test(username)) {
 		throw new BridgeUserError({
-			ar: `"${username}" ما يشبه اسم لاعب.`,
-			en: `"${username}" is not a player name.`,
+			ar: `«${username}» ليس اسم لاعب صحيحًا.`,
+			en: `"${username}" isn't a valid player name.`,
 		});
 	}
 

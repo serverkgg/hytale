@@ -35,7 +35,7 @@ const FULL_PERCENT = 100;
 const RENEW: Bridge.SetupAction = {
 	id: RENEW_ACTION,
 	label: {
-		ar: "خذ رمز جديد",
+		ar: "خذ رمزًا جديدًا",
 		en: "Get a new code",
 	},
 };
@@ -43,49 +43,49 @@ const RENEW: Bridge.SetupAction = {
 const RETRY: Bridge.SetupAction = {
 	id: RETRY_ACTION,
 	label: {
-		ar: "جرّب مرة ثانية",
+		ar: "جرب مرة ثانية",
 		en: "Try again",
 	},
 };
 
 const STARTING_MESSAGE: Bridge.Text = {
-	ar: "نشغّل سيرفرك… ثواني وبيطلع لك رمز الدخول هنا.",
-	en: "Starting your server — your sign-in code appears here in a moment.",
+	ar: "جاري تشغيل سيرفرك… يظهر رمز الدخول هنا خلال ثوانٍ.",
+	en: "Starting your server… Your sign-in code appears here in a moment.",
 };
 
 const LINK_MESSAGE: Bridge.Text = {
-	ar: "افتح الرابط في المتصفح، سجّل دخول بحساب هايتيل حقك، والصق الرمز هذا.",
+	ar: "افتح الرابط في المتصفح، وسجّل الدخول بحساب هايتيل الخاص بك، ثم أدخل هذا الرمز.",
 	en: "Open the link in your browser, sign in with your own Hytale account, and enter this code.",
 };
 
 const EXPIRED_MESSAGE: Bridge.Text = {
-	ar: "انتهى وقت الرمز قبل ما تسجّل دخول. اضغط عشان ناخذ لك رمز جديد.",
+	ar: "انتهت صلاحية الرمز قبل إكمال تسجيل الدخول. اضغط للحصول على رمز جديد.",
 	en: "The code ran out before the sign-in finished. Press to get a new one.",
 };
 
 const SIGNED_OUT_MESSAGE: Bridge.Text = {
-	ar: "سيرفرك مسجّل خروج، وما يستقبل لاعبين. اضغط عشان ناخذ لك رمز دخول جديد.",
+	ar: "سيرفرك غير مسجّل الدخول، لذلك لا يستقبل لاعبين. اضغط للحصول على رمز دخول جديد.",
 	en: "Your server is signed out, so it takes no players. Press to get a new sign-in code.",
 };
 
 const DOWNLOADING_MESSAGE: Bridge.Text = {
-	ar: "سيرفرك سجّل دخوله وبدأ ينزّل ملفات اللعبة. حجمها كبير فتاخذ شوي.",
+	ar: "تم تسجيل دخول سيرفرك وبدأ تنزيل ملفات اللعبة. حجمها كبير، لذلك يستغرق التنزيل بعض الوقت.",
 	en: "Your server signed in and started downloading the game files. They are large, so it takes a while.",
 };
 
 const RESTARTING_MESSAGE: Bridge.Text = {
-	ar: "خلص التنزيل. سيرفرك يعيد التشغيل على نسخة اللعبة الكاملة.",
+	ar: "اكتمل التنزيل. جاري ريستارت سيرفرك على اللعبة الكاملة.",
 	en: "The download is done. Your server is restarting on the full game.",
 };
 
 const STALLED_MESSAGE: Bridge.Text = {
-	ar: "وقف التنزيل ولا خلّص. جرّب مرة ثانية، وإذا تكرر افتح تذكرة دعم.",
+	ar: "توقف التنزيل قبل اكتماله. جرب مرة ثانية، وإذا تكرر ذلك افتح تذكرة دعم.",
 	en: "The download stopped without finishing. Try again, and open a support ticket if it keeps happening.",
 };
 
 const FAILED_MESSAGE: Bridge.Text = {
-	ar: "ما قدرنا نكمّل الخطوة. جرّب مرة ثانية.",
-	en: "We could not finish this step. Try again.",
+	ar: "تعذّر إكمال هذه الخطوة، جرب مرة ثانية.",
+	en: "We couldn't finish this step. Try again.",
 };
 
 const SIGNED_IN_ACTIVITY: Bridge.Text = {
@@ -94,23 +94,23 @@ const SIGNED_IN_ACTIVITY: Bridge.Text = {
 };
 
 const DOWNLOADED_ACTIVITY: Bridge.Text = {
-	ar: "تم تنزيل ملفات هايتيل، والسيرفر يعيد التشغيل على اللعبة الكاملة",
+	ar: "تم تنزيل ملفات هايتيل، وجاري ريستارت السيرفر على اللعبة الكاملة",
 	en: "Downloaded the Hytale game files, the server is restarting on the full game",
 };
 
 const EXPIRED_ACTIVITY: Bridge.Text = {
-	ar: "انتهى وقت كل رموز الدخول قبل ما يكتمل تسجيل الدخول في هايتيل",
+	ar: "انتهت صلاحية كل رموز الدخول قبل اكتمال تسجيل الدخول في هايتيل",
 	en: "Every sign-in code ran out before the Hytale sign-in finished",
 };
 
 const UNKNOWN_STEP: Bridge.Text = {
-	ar: "الخطوة هذي ما هي من خطوات تركيب هايتيل.",
-	en: "That step is not part of the Hytale setup.",
+	ar: "هذه الخطوة ليست من خطوات تجهيز هايتيل.",
+	en: "That step isn't part of the Hytale setup.",
 };
 
 const UNKNOWN_ACTION: Bridge.Text = {
-	ar: "ما نعرف الزر هذا. حدّث الصفحة وجرّب مرة ثانية.",
-	en: "We do not know that button. Refresh the page and try again.",
+	ar: "هذا الزر غير معروف. حدّث الصفحة وجرب مرة ثانية.",
+	en: "We don't recognize that button. Refresh the page and try again.",
 };
 
 export enum HytaleSetupPhase {
@@ -559,13 +559,13 @@ export const signedInAt = (stage: HytaleStage, state: HytaleAuthState) => {
 	return stage === HytaleStage.Server ? state !== HytaleAuthState.SignedOut : state === HytaleAuthState.SignedIn;
 };
 
-// Every entry point starts a run and answers on that run's first report, so a
-// caller never reads the previous run's runtime. Reporting Starting at the head
-// is what keeps an entry point that has to talk to the game console — the device
-// login takes seconds — from holding its caller for the whole round trip. Renew
-// is the exception: the customer pressed it to get a new code, so it answers on
-// the code itself.
-const begin = (context: Bridge.Context, plan: (run: SetupRun) => Promise<void>) => {
+const reportStartingBeforeTheConsoleRoundTrip = (context: Bridge.Context, run: SetupRun) => {
+	report(context, run, {
+		phase: HytaleSetupPhase.Starting,
+	});
+};
+
+const beginAnsweringOnFirstReport = (context: Bridge.Context, plan: (run: SetupRun) => Promise<void>) => {
 	const run = startRun();
 
 	void drive(context, run, () => {
@@ -576,10 +576,8 @@ const begin = (context: Bridge.Context, plan: (run: SetupRun) => Promise<void>) 
 };
 
 export const advanceSetup = async (context: Bridge.Context) => {
-	await begin(context, async (run) => {
-		report(context, run, {
-			phase: HytaleSetupPhase.Starting,
-		});
+	await beginAnsweringOnFirstReport(context, async (run) => {
+		reportStartingBeforeTheConsoleRoundTrip(context, run);
 
 		const stage = await stageOf(context);
 		const auth = await readAuth(context);
@@ -589,10 +587,8 @@ export const advanceSetup = async (context: Bridge.Context) => {
 };
 
 export const restartSignIn = async (context: Bridge.Context) => {
-	await begin(context, async (run) => {
-		report(context, run, {
-			phase: HytaleSetupPhase.Starting,
-		});
+	await beginAnsweringOnFirstReport(context, async (run) => {
+		reportStartingBeforeTheConsoleRoundTrip(context, run);
 
 		await flow(context, run, await stageOf(context), false);
 	});
@@ -603,7 +599,7 @@ export const renewSignIn = async (context: Bridge.Context) => {
 
 	await cancelDeviceLogin(context);
 
-	await begin(context, async (run) => {
+	await beginAnsweringOnFirstReport(context, async (run) => {
 		await flow(context, run, await stageOf(context), false);
 	});
 };

@@ -8,14 +8,18 @@ metadata:
     ar: هايتيل
     en: Hytale
   description:
-    ar: سيرفر هايتيل — عالم مكعبات مفتوح، مغامرات، بناء، وقتال مع أصحابك. عالمك محفوظ على سيرفرك وشغّال 24 ساعة. تسجّل دخوله مرة وحدة بحساب هايتيل حقك، وبعدها يحدّث نفسه على طول.
-    en: Hytale dedicated servers — an open block world of adventure, building and combat with your friends. Your world lives on your server and runs around the clock. You sign it in once with your own Hytale account, and it keeps itself updated from then on.
+    ar: سيرفر هايتيل للمغامرات والبناء والقتال مع أصحابك في ماب مفتوحة من المكعبات. مابك محفوظة على سيرفرك وشغّالة على مدار 24 ساعة. سجّل دخول السيرفر مرة واحدة بحساب هايتيل الخاص بك، وبعدها يحدّث نفسه تلقائيًا.
+    en: Hytale dedicated servers for adventure, building and combat with your friends in an open block world. Your world lives on your server and runs around the clock. You sign it in once with your own Hytale account, and it keeps itself updated from then on.
   tagline:
-    ar: عالمك في هايتيل مع أصحابك — سيرفرك جاهز خلال دقيقة
-    en: Your Hytale world with your friends — your server, ready in a minute
+    ar: مابك في هايتيل مع أصحابك، وسيرفرك جاهز خلال دقيقة
+    en: Your Hytale world with your friends, with your server ready in a minute
   category: sandbox
   logo: assets/logo.webp
   banner: assets/banner.webp
+  extensions:
+    - kind: mods
+      sources:
+        - curseforge
 
 resources:
   minMemoryMb: 4096
@@ -40,8 +44,8 @@ container:
         ar: هايتيل
         en: Hytale
       hint:
-        ar: من داخل اللعبة افتح Multiplayer ثم Direct Connect واكتب العنوان والمنفذ مع بعض زي ما هو.
-        en: In the game open Multiplayer then Direct Connect and type the address and port together, exactly as shown.
+        ar: من داخل اللعبة افتح Multiplayer ثم Direct Connect، واكتب العنوان والمنفذ معًا كما يظهران.
+        en: In the game, open Multiplayer, then Direct Connect, and type the address and port together, exactly as shown.
       hostRange:
         default: 5520
         min: 5520
@@ -50,8 +54,8 @@ container:
 secrets:
   - key: CURSEFORGE_API_KEY
     description:
-      ar: مفتاح CurseForge API — بدونه يقفل كتالوج مودات هايتيل، ويبقى الرفع اليدوي لمجلد المودات هو الطريق الوحيد.
-      en: CurseForge API key — without it the Hytale mod catalog stays off and uploading to the mods folder by hand is the only way.
+      ar: مفتاح CurseForge API. بدونه يبقى كتالوج مودات هايتيل موقوفًا، ويصبح الرفع اليدوي إلى مجلد المودات الطريقة الوحيدة.
+      en: CurseForge API key. Without it, the Hytale mod catalog stays off and uploading to the mods folder by hand is the only way.
     required: false
 
 backup:
@@ -121,17 +125,17 @@ files:
       color: "#5ba32b"
       restart: true
       note:
-        ar: إعدادات السيرفر كاملة — الاسم، الرسالة الترحيبية، كلمة المرور، وعدد اللاعبين. عدّلها من تبويب الإعدادات أحسن، وأي تعديل يبي إعادة تشغيل.
-        en: Every server setting — name, MOTD, password and player slots. The Settings tab is the easier way, and any change needs a restart.
+        ar: "كل إعدادات السيرفر: الاسم ورسالة الترحيب وكلمة المرور وعدد اللاعبين. الأسهل تعديلها من تبويب الإعدادات، وأي تعديل يتطلب ريستارت."
+        en: "Every server setting: name, welcome message, password and player slots. The Settings tab is the easier way, and any change needs a restart."
     - match: Server/universe
       label:
-        ar: بيانات العالم
+        ar: بيانات المابات
         en: World data
       icon: map
       color: "#4a8fd4"
       note:
-        ar: عوالمك وبيانات اللاعبين. لا تعدّل عليه والسيرفر شغّال، وخذ نسخة احتياطية قبل أي شي.
-        en: Your worlds and the player data. Do not touch it while the server runs, and take a backup first.
+        ar: ماباتك وبيانات اللاعبين. لا تعدّل عليها والسيرفر شغّال، وخذ نسخة احتياطية قبل أي تعديل.
+        en: Your worlds and the player data. Don't change them while the server runs, and take a backup first.
     - match: Server/mods
       label:
         ar: المودات
@@ -140,8 +144,8 @@ files:
       color: "#c77dff"
       restart: true
       note:
-        ar: مجلد المودات. حط ملف المود هنا زي ما هو (zip. أو jar.) وأعد التشغيل عشان يشتغل. اللاعبين ما يركّبون شي عندهم — سيرفرك يوصّل لهم المودات أول ما يدخلون. الأسهل تركّبها من تبويب المودات.
-        en: Your mods folder. Drop the mod file in as it is (.zip or .jar) and restart for it to load. Your players install nothing — your server streams the mods to them as they join. The Mods tab is the easier way.
+        ar: مجلد المودات. ضع ملف المود هنا كما هو (zip. أو jar.)، ويشتغل بعد الريستارت. لا يلزم اللاعبين تثبيت أي شيء، فسيرفرك يرسل إليهم المودات عند دخولهم. الأسهل تثبيتها من تبويب المودات.
+        en: Your mods folder. Drop the mod file in as it is (.zip or .jar). It loads after a restart. Your players install nothing, because your server streams the mods to them as they join. The Mods tab is the easier way.
     - match: earlyplugins
       label:
         ar: إضافات مبكّرة
@@ -149,7 +153,7 @@ files:
       icon: shield
       color: "#8c8c8c"
       note:
-        ar: هايتيل نفسها تقول إن الإضافات المبكّرة غير مدعومة وتعطّل السيرفر، وسيرفرك ما يشغّلها. حط موداتك في Server/mods بدالها.
+        ar: تصف هايتيل نفسها الإضافات المبكّرة بأنها غير مدعومة وتعطّل السيرفر، ولا تفعّلها منصة سيرفرك أبدًا. ضع موداتك في Server/mods بدلًا منها.
         en: Hytale itself calls early plugins unsupported and unstable, and Serverk never enables them. Put your mods in Server/mods instead.
     - match: Server/permissions.json
       label:
@@ -159,16 +163,16 @@ files:
       color: "#f2a33c"
       restart: true
       note:
-        ar: صلاحيات اللاعبين، والقائمة البيضاء معها — اللي عنده صلاحية hytale.server.join يقدر يدخل لما تفعّلها. الأسهل تديرها من تبويب التحكم.
-        en: Player permissions, and the whitelist with them — whoever holds hytale.server.join may join while it is on. The Controls tab is the easier way to manage it.
+        ar: صلاحيات اللاعبين والقائمة البيضاء معها. عند تفعيل القائمة، يستطيع الدخول كل من يملك صلاحية hytale.server.join. الأسهل إدارتها من تبويب التحكم.
+        en: Player permissions, and the whitelist with them. Whoever holds hytale.server.join can join while it's on. The Controls tab is the easier way to manage it.
     - match: Server/backups
       label:
-        ar: نسخ السيرفر
+        ar: لقطات السيرفر
         en: Server snapshots
       icon: box
       color: "#8c8c8c"
       note:
-        ar: نسخ يحفظها سيرفر هايتيل بنفسه كل نص ساعة وقبل أي تحديث. النسخ الاحتياطية اللي تعتمد عليها من تبويب النسخ الاحتياطية.
+        ar: لقطات يحفظها سيرفر هايتيل بنفسه كل نصف ساعة وقبل أي تحديث. أما النسخ الاحتياطية التي تعتمد عليها فتجدها في تبويب النسخ الاحتياطية.
         en: Snapshots the Hytale server keeps on its own every half hour and before any update. The backups you rely on live in the Backups tab.
 
 guideTags:
@@ -191,7 +195,7 @@ guides:
       ar: البدء بسيرفرك
       en: Getting started
     summary:
-      ar: أنشئ سيرفر هايتيل، سجّل دخوله مرة وحدة، وادخل مع أصحابك.
+      ar: أنشئ سيرفر هايتيل، وسجّل دخوله مرة واحدة، وادخل مع أصحابك.
       en: Create your Hytale server, sign it in once, and join with your friends.
     tags:
       - start
@@ -206,7 +210,7 @@ guides:
       ar: تحديثات هايتيل
       en: Hytale updates
     summary:
-      ar: ليش سيرفرك يحدّث نفسه كل ما يشتغل، ووش يصير لما تنزل نسخة جديدة من اللعبة.
+      ar: لماذا يحدّث سيرفرك نفسه مع كل تشغيل، وما الذي يحدث عند صدور إصدار جديد من اللعبة.
       en: Why your server updates itself on every boot, and what happens when a new game version ships.
     tags:
       - updates
@@ -222,7 +226,7 @@ guides:
       ar: مودات هايتيل
       en: Hytale mods
     summary:
-      ar: ركّب مودات على سيرفرك بدون ما يركّب لاعبينك أي شي عندهم.
+      ar: ثبّت مودات على سيرفرك دون أن يثبّت لاعبوك أي شيء.
       en: Install mods on your server without your players installing anything.
     tags:
       - mods

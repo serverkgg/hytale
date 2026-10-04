@@ -1,10 +1,10 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import type { Bridge } from "@serverkgg/bridge";
 import { INSTALL_STAMP_FILE } from "@serverkgg/bridge/install";
 import { installStampOf, readInstallStamp, stampVersion } from "./installStamp";
 
 describe("installStampOf", () => {
-	test("reads the installer an earlier boot placed", () => {
+	it("reads the installer an earlier boot placed", () => {
 		expect(
 			installStampOf({
 				installer: "0.6.3",
@@ -16,7 +16,7 @@ describe("installStampOf", () => {
 		});
 	});
 
-	test("reads the payload version a later boot observed", () => {
+	it("reads the payload version a later boot observed", () => {
 		expect(
 			installStampOf({
 				installer: "0.6.3",
@@ -28,7 +28,7 @@ describe("installStampOf", () => {
 		});
 	});
 
-	test("refuses a stamp with no installer on it, so the installer is fetched again", () => {
+	it("refuses a stamp with no installer on it, so the installer is fetched again", () => {
 		expect(installStampOf({})).toBeNull();
 		expect(
 			installStampOf({
@@ -47,11 +47,11 @@ describe("installStampOf", () => {
 		).toBeNull();
 	});
 
-	test("refuses an unreadable stamp, so a half-written file forces a reinstall", () => {
+	it("refuses an unreadable stamp, so a half-written file forces a reinstall", () => {
 		expect(installStampOf(null)).toBeNull();
 	});
 
-	test("drops a version that is not usable text", () => {
+	it("drops a version that is not usable text", () => {
 		expect(
 			installStampOf({
 				installer: "0.6.3",
@@ -85,7 +85,7 @@ const stampContext = (seed: Record<string, string> = {}) => {
 };
 
 describe("stampVersion", () => {
-	test("answers true and keeps the installer when the version changed", async () => {
+	it("answers true and keeps the installer when the version changed", async () => {
 		const { context } = stampContext({
 			[INSTALL_STAMP_FILE]: JSON.stringify({
 				installer: "0.6.3",
@@ -100,7 +100,7 @@ describe("stampVersion", () => {
 		});
 	});
 
-	test("answers false when the booted version is already stamped", async () => {
+	it("answers false when the booted version is already stamped", async () => {
 		const { context } = stampContext({
 			[INSTALL_STAMP_FILE]: JSON.stringify({
 				installer: "0.6.3",
@@ -111,7 +111,7 @@ describe("stampVersion", () => {
 		expect(await stampVersion(context, "0.6.3")).toBe(false);
 	});
 
-	test("answers true on the first boot and stamps the version as the installer", async () => {
+	it("answers true on the first boot and stamps the version as the installer", async () => {
 		const { context } = stampContext();
 
 		expect(await stampVersion(context, "0.6.3")).toBe(true);

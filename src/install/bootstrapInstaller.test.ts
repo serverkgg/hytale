@@ -1,11 +1,11 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { BridgeDownloadError, BridgeNetError, BridgeUserError } from "@serverkgg/bridge";
 import { installerFailure, UNREACHABLE } from "./bootstrapInstaller";
 
 const SUBJECT = "HytaleServer.jar 2026.01.24";
 
 describe("installerFailure", () => {
-	test("keeps the unreachable text and the original error when no answer came back", () => {
+	it("keeps the unreachable text and the original error when no answer came back", () => {
 		const cause = new BridgeNetError(null, "ECONNREFUSED maven.hytale.com");
 		const error = installerFailure(cause, SUBJECT);
 
@@ -14,7 +14,7 @@ describe("installerFailure", () => {
 		expect(error.cause).toBe(cause);
 	});
 
-	test("says the release is gone when maven answers 404", () => {
+	it("says the release is gone when maven answers 404", () => {
 		const cause = new BridgeDownloadError(404, "not found");
 		const error = installerFailure(cause, SUBJECT);
 
@@ -22,9 +22,9 @@ describe("installerFailure", () => {
 		expect(error.cause).toBe(cause);
 	});
 
-	test("says the download failed for anything else", () => {
+	it("says the download failed for anything else", () => {
 		expect(installerFailure(new Error("digest mismatch"), SUBJECT).text.en).toBe(
-			"We could not download HytaleServer.jar 2026.01.24. Try again.",
+			"We couldn't download HytaleServer.jar 2026.01.24. Try again.",
 		);
 	});
 });

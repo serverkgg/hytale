@@ -1,12 +1,12 @@
 ## Why your server updates itself
 
-Hytale locks the client and the server to the same version: a player on a newer build cannot join an older server. So your server asks Hytale every hour whether a new version shipped, downloads it in the background, warns the players who are online, and applies it **15 minutes later**, on time, whether or not someone is still inside.
+Hytale locks the client and the server to the same version: a player on a newer build can't join an older server. So your server asks Hytale every hour whether a new version shipped, downloads it in the background, warns the players who are online, and applies it **15 minutes later**, on time, whether or not someone is still inside.
 
 Most of the time that means you do nothing at all: the update arrives on its own, and your players get a countdown instead of a locked door. If it lands mid-session, the world is saved first and the server is back within seconds.
 
-> [!note] Why not wait until the server is empty? Because one player who never leaves would lock everyone else out: anyone whose game already updated cannot join until the server updates too.
+> [!note] Why not wait until the server is empty? Because one player who never leaves would lock everyone else out: anyone whose game already updated can't join until the server updates too.
 
-> [!note] Before any update your server takes its own snapshot of the world and the config, on top of the backups we keep for you.
+> [!note] Before any update, your server takes its own snapshot of the world and the config, on top of the backups we keep for you.
 
 ## What actually happens
 
@@ -18,7 +18,7 @@ Most of the time that means you do nothing at all: the update arrives on its own
 
 ## What changes and what stays
 
-Changes: `Server/HytaleServer.jar`, `Assets.zip` and the start scripts. They are protected in the file manager so they cannot be deleted by accident.
+Changes: `Server/HytaleServer.jar`, `Assets.zip` and the start scripts. They're protected in the file manager so they can't be deleted by accident.
 
 Stays exactly as it was: your world under `Server/universe/`, your settings in `Server/config.json`, the whitelist, the bans and your mods.
 
@@ -32,17 +32,17 @@ The version currently installed on your server:
 
 ## The game's snapshots and ours
 
-The Hytale server keeps its own snapshots every half hour and before every update, in `Server/backups` on your server's own disk. They are a quick rescue when something in the world breaks — you reach them from the Files tab.
+The Hytale server keeps its own snapshots every half hour and before every update, in `Server/backups` on your server's own disk. They're a quick rescue when something in the world breaks, and you reach them from the Files tab.
 
-The backups in the **Backups tab** are a different thing: we take them, they cover every file on your server, each one gets a second copy in off-site storage away from the machine, and you can download one or roll back to it with a click. The game's snapshots die with the machine; ours do not.
+The backups in the **Backups tab** are a different thing: we take them, they cover every file on your server, each one gets a second copy in off-site storage away from the machine, and you can download one or roll back to it with a click. The game's snapshots are lost if the machine is lost. Ours aren't.
 
 > [!note] Hytale's snapshots count against your server's disk space, not against your backup space.
 
-> [!warning] Hytale is early, and updates can change worlds and mods. If you depend on mods, take a backup before any large update.
+> [!warning] Hytale is still early, and updates can change worlds and mods. If you depend on mods, take a backup before any large update.
 
 @[open](backups)
 
-## If you would rather drive it yourself
+## If you'd rather update it yourself
 
 Everything is available from the console:
 
@@ -56,7 +56,7 @@ Then `/update apply --confirm` installs the staged version and restarts right aw
 
 ## If an update fails
 
-- Check that your server is signed in, from the Account tab — an update needs a signed-in account
-- Read the console tab: any download error is printed there in full
-- Restart once more — most download failures are temporary
-- If it keeps failing, open a support ticket and we will look at it with you
+- Check in the Account tab that your server is signed in, because an update needs a signed-in account
+- Read the Console tab: any download error is printed there in full
+- Restart once more, because most download failures are temporary
+- If it keeps failing, open a support ticket and we'll look at it with you

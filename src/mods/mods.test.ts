@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import {
 	type Bridge,
 	BridgeAction,
@@ -82,7 +82,7 @@ const sidecar: ModsSidecar = {
 };
 
 describe("picking the file to install", () => {
-	test("on the release patchline it never installs a beta or an alpha build", () => {
+	it("on the release patchline it never installs a beta or an alpha build", () => {
 		expect(
 			selectFile(
 				[
@@ -103,7 +103,7 @@ describe("picking the file to install", () => {
 		).toBe("release.jar");
 	});
 
-	test("on any other patchline it takes the newest build whatever its channel", () => {
+	it("on any other patchline it takes the newest build whatever its channel", () => {
 		expect(
 			selectFile(
 				[
@@ -124,7 +124,7 @@ describe("picking the file to install", () => {
 		).toBe("beta.jar");
 	});
 
-	test("prefers the build made for the version this server runs", () => {
+	it("prefers the build made for the version this server runs", () => {
 		expect(
 			selectFile(
 				[
@@ -149,7 +149,7 @@ describe("picking the file to install", () => {
 		).toBe("for-0.6.3.jar");
 	});
 
-	test("falls back to the newest build when nothing declares this version", () => {
+	it("falls back to the newest build when nothing declares this version", () => {
 		expect(
 			selectFile(
 				[
@@ -174,7 +174,7 @@ describe("picking the file to install", () => {
 		).toBe("new.jar");
 	});
 
-	test("takes the newest build when we do not know which version is installed", () => {
+	it("takes the newest build when we do not know which version is installed", () => {
 		expect(
 			selectFile(
 				[
@@ -193,7 +193,7 @@ describe("picking the file to install", () => {
 		).toBe("new.jar");
 	});
 
-	test("skips a file curseforge marks unavailable", () => {
+	it("skips a file curseforge marks unavailable", () => {
 		expect(
 			selectFile(
 				[
@@ -213,7 +213,7 @@ describe("picking the file to install", () => {
 		).toBe("kept.jar");
 	});
 
-	test("has nothing to install when the release channel holds no build", () => {
+	it("has nothing to install when the release channel holds no build", () => {
 		expect(
 			selectFile(
 				[
@@ -229,7 +229,7 @@ describe("picking the file to install", () => {
 });
 
 describe("listing what is installed", () => {
-	test("shows a mod the catalog installed with everything it recorded", () => {
+	it("shows a mod the catalog installed with everything it recorded", () => {
 		expect(
 			mergeInstalled(
 				sidecar,
@@ -258,7 +258,7 @@ describe("listing what is installed", () => {
 		]);
 	});
 
-	test("shows a file the customer uploaded themselves beside the catalog's own", () => {
+	it("shows a file the customer uploaded themselves beside the catalog's own", () => {
 		const entries = mergeInstalled(
 			sidecar,
 			[
@@ -288,7 +288,7 @@ describe("listing what is installed", () => {
 		});
 	});
 
-	test("ignores anything in the folder that is not a mod, the sidecar included", () => {
+	it("ignores anything in the folder that is not a mod, the sidecar included", () => {
 		expect(
 			mergeInstalled(
 				{},
@@ -307,7 +307,7 @@ describe("listing what is installed", () => {
 		).toEqual([]);
 	});
 
-	test("reads a parked file as installed but off", () => {
+	it("reads a parked file as installed but off", () => {
 		expect(
 			mergeInstalled(
 				sidecar,
@@ -328,7 +328,7 @@ describe("listing what is installed", () => {
 });
 
 describe("reading the versions a file declares", () => {
-	test("a file tagged with the line it was built for covers every patch on that line", () => {
+	it("a file tagged with the line it was built for covers every patch on that line", () => {
 		expect(
 			coversVersion(
 				[
@@ -339,7 +339,7 @@ describe("reading the versions a file declares", () => {
 		).toBe(true);
 	});
 
-	test("a file tagged with the exact version covers it", () => {
+	it("a file tagged with the exact version covers it", () => {
 		expect(
 			coversVersion(
 				[
@@ -350,7 +350,7 @@ describe("reading the versions a file declares", () => {
 		).toBe(true);
 	});
 
-	test("a file tagged with another line covers nothing on ours", () => {
+	it("a file tagged with another line covers nothing on ours", () => {
 		expect(
 			coversVersion(
 				[
@@ -364,7 +364,7 @@ describe("reading the versions a file declares", () => {
 });
 
 describe("warning that a game update left a mod behind", () => {
-	test("a mod we just installed is never stale, however short the version its file declares", () => {
+	it("a mod we just installed is never stale, however short the version its file declares", () => {
 		expect(
 			isStale(
 				{
@@ -379,7 +379,7 @@ describe("warning that a game update left a mod behind", () => {
 		).toBe(false);
 	});
 
-	test("a mod carried across a patch its file still covers is not stale", () => {
+	it("a mod carried across a patch its file still covers is not stale", () => {
 		expect(
 			isStale(
 				{
@@ -394,7 +394,7 @@ describe("warning that a game update left a mod behind", () => {
 		).toBe(false);
 	});
 
-	test("a mod left behind by an update its file does not cover is stale", () => {
+	it("a mod left behind by an update its file does not cover is stale", () => {
 		const behind: ModEntry = {
 			...tracked,
 			installedFor: "0.5.9",
@@ -421,15 +421,15 @@ describe("warning that a game update left a mod behind", () => {
 		).toBe(true);
 	});
 
-	test("nothing is stale when we cannot tell which version the server runs", () => {
+	it("nothing is stale when we cannot tell which version the server runs", () => {
 		expect(isStale(tracked, null)).toBe(false);
 	});
 
-	test("an entry written before we recorded the install version waits for its next install", () => {
+	it("an entry written before we recorded the install version waits for its next install", () => {
 		expect(isStale(legacy, "0.7.0")).toBe(false);
 	});
 
-	test("a file the customer uploaded is never stale, because it never told us a version", () => {
+	it("a file the customer uploaded is never stale, because it never told us a version", () => {
 		expect(
 			catalogEntry(
 				{
@@ -448,37 +448,37 @@ describe("warning that a game update left a mod behind", () => {
 });
 
 describe("finding the files an id stands for", () => {
-	test("finds the file the catalog installed for a project", () => {
+	it("finds the file the catalog installed for a project", () => {
 		expect(trackedNames(sidecar, "918273")).toEqual([
 			tracked.fileName,
 		]);
 	});
 
-	test("finds a file by its own name, parked or not", () => {
+	it("finds a file by its own name, parked or not", () => {
 		expect(trackedNames(sidecar, `${tracked.fileName}.disabled`)).toEqual([
 			tracked.fileName,
 		]);
 	});
 
-	test("finds nothing for a project this server never installed", () => {
+	it("finds nothing for a project this server never installed", () => {
 		expect(trackedNames(sidecar, "404404")).toEqual([]);
 	});
 });
 
 describe("installing a project the server already tracks", () => {
-	test("does not download again when curseforge still points at the file we hold", () => {
+	it("does not download again when curseforge still points at the file we hold", () => {
 		expect(needsDownload(tracked, tracked.fileId)).toBe(false);
 	});
 
-	test("downloads when curseforge has published a newer file", () => {
+	it("downloads when curseforge has published a newer file", () => {
 		expect(needsDownload(tracked, "9998887")).toBe(true);
 	});
 
-	test("downloads for a project this server never installed", () => {
+	it("downloads for a project this server never installed", () => {
 		expect(needsDownload(null, "5544332")).toBe(true);
 	});
 
-	test("records the version the server runs now so the mod stops reading as stale", () => {
+	it("records the version the server runs now so the mod stops reading as stale", () => {
 		const behind: ModEntry = {
 			...tracked,
 			installedFor: "0.5.9",
@@ -512,7 +512,7 @@ describe("installing a project the server already tracks", () => {
 });
 
 describe("naming a catalog category", () => {
-	test("gives a known category its arabic label", () => {
+	it("gives a known category its arabic label", () => {
 		expect(
 			categoryLabel({
 				id: 9285,
@@ -524,7 +524,7 @@ describe("naming a catalog category", () => {
 		});
 	});
 
-	test("replaces the curseforge hierarchy separator in a known label", () => {
+	it("replaces the curseforge hierarchy separator in a known label", () => {
 		expect(
 			categoryLabel({
 				id: 9283,
@@ -536,7 +536,7 @@ describe("naming a catalog category", () => {
 		});
 	});
 
-	test("falls back to the cleaned english name in both locales", () => {
+	it("falls back to the cleaned english name in both locales", () => {
 		expect(
 			categoryLabel({
 				id: 99_999,
@@ -548,7 +548,7 @@ describe("naming a catalog category", () => {
 		});
 	});
 
-	test("never leaks a backslash into either locale", () => {
+	it("never leaks a backslash into either locale", () => {
 		const labels = [
 			...Object.values(CATEGORY_LABELS),
 			categoryLabel({
@@ -563,14 +563,14 @@ describe("naming a catalog category", () => {
 		}
 	});
 
-	test("every known label carries arabic that differs from the english one", () => {
+	it("every known label carries arabic that differs from the english one", () => {
 		for (const label of Object.values(CATEGORY_LABELS)) {
 			expect(label.ar.length).toBeGreaterThan(0);
 			expect(label.ar).not.toBe(label.en);
 		}
 	});
 
-	test("names a hit category with the cleaned english label", () => {
+	it("names a hit category with the cleaned english label", () => {
 		expect(
 			categoryName({
 				id: 10_466,
@@ -579,7 +579,7 @@ describe("naming a catalog category", () => {
 		).toBe("Cosmetics & Armor");
 	});
 
-	test("names an unknown hit category with its cleaned english name", () => {
+	it("names an unknown hit category with its cleaned english name", () => {
 		expect(
 			categoryName({
 				id: 99_997,
@@ -753,7 +753,7 @@ const catalogServer = (): CatalogServer => {
 };
 
 describe("listing the releases a mod offers", () => {
-	test("offers only release builds, newest first, on the release patchline", () => {
+	it("offers only release builds, newest first, on the release patchline", () => {
 		expect(releasesOf(projectFiles, "release", "0.6.3")).toEqual([
 			{
 				id: "5544332",
@@ -768,7 +768,7 @@ describe("listing the releases a mod offers", () => {
 		]);
 	});
 
-	test("offers every channel on any other patchline", () => {
+	it("offers every channel on any other patchline", () => {
 		expect(releasesOf(projectFiles, "pre-release", "0.6.3").map((release) => release.id)).toEqual([
 			"5544335",
 			"5544332",
@@ -776,7 +776,7 @@ describe("listing the releases a mod offers", () => {
 		]);
 	});
 
-	test("leaves the game version out when a file declares none", () => {
+	it("leaves the game version out when a file declares none", () => {
 		expect(
 			releasesOf(
 				[
@@ -796,7 +796,7 @@ describe("listing the releases a mod offers", () => {
 		]);
 	});
 
-	test("skips a file curseforge marks unavailable", () => {
+	it("skips a file curseforge marks unavailable", () => {
 		expect(
 			releasesOf(
 				[
@@ -811,7 +811,7 @@ describe("listing the releases a mod offers", () => {
 		).toEqual([]);
 	});
 
-	test("asks curseforge for the project's files and maps them for the panel", async () => {
+	it("asks curseforge for the project's files and maps them for the panel", async () => {
 		const { context } = catalogServer();
 
 		expect((await mods.releases?.(context, String(PROJECT_ID)))?.map((release) => release.id)).toEqual([
@@ -822,7 +822,7 @@ describe("listing the releases a mod offers", () => {
 });
 
 describe("installing a chosen release", () => {
-	test("installs the release the customer picked instead of the newest one", async () => {
+	it("installs the release the customer picked instead of the newest one", async () => {
 		const { context, downloads, stored } = catalogServer();
 
 		const entry = await mods.install(context, String(PROJECT_ID), "5544330");
@@ -836,7 +836,7 @@ describe("installing a chosen release", () => {
 		);
 	});
 
-	test("installs the newest matching release when none is picked", async () => {
+	it("installs the newest matching release when none is picked", async () => {
 		const { context, downloads } = catalogServer();
 
 		await mods.install(context, String(PROJECT_ID));
@@ -846,7 +846,7 @@ describe("installing a chosen release", () => {
 		]);
 	});
 
-	test("refuses a release that belongs to another project", async () => {
+	it("refuses a release that belongs to another project", async () => {
 		const { context, downloads } = catalogServer();
 
 		await expect(mods.install(context, String(PROJECT_ID), String(foreignFile.id))).rejects.toBeInstanceOf(
@@ -855,14 +855,14 @@ describe("installing a chosen release", () => {
 		expect(downloads).toEqual([]);
 	});
 
-	test("refuses a beta release on the release patchline", async () => {
+	it("refuses a beta release on the release patchline", async () => {
 		const { context, downloads } = catalogServer();
 
 		await expect(mods.install(context, String(PROJECT_ID), "5544335")).rejects.toBeInstanceOf(BridgeUserError);
 		expect(downloads).toEqual([]);
 	});
 
-	test("refuses a release id that is not a curseforge file id", async () => {
+	it("refuses a release id that is not a curseforge file id", async () => {
 		const { context, downloads } = catalogServer();
 
 		await expect(mods.install(context, String(PROJECT_ID), "../../etc")).rejects.toBeInstanceOf(BridgeUserError);
@@ -871,7 +871,7 @@ describe("installing a chosen release", () => {
 });
 
 describe("previewing an install", () => {
-	test("names the release it will install and says the change needs a restart", async () => {
+	it("names the release it will install and says the change needs a restart", async () => {
 		const { context, downloads } = catalogServer();
 
 		const preview = await mods.preview?.(context, String(PROJECT_ID), "5544330");
@@ -886,13 +886,13 @@ describe("previewing an install", () => {
 		expect(downloads).toEqual([]);
 	});
 
-	test("names the newest matching release when none is picked", async () => {
+	it("names the newest matching release when none is picked", async () => {
 		const { context } = catalogServer();
 
 		expect((await mods.preview?.(context, String(PROJECT_ID)))?.lines.at(1)?.en).toBe("HeroCore API: HeroCore 1.4.2");
 	});
 
-	test("refuses to preview a release the install would refuse", async () => {
+	it("refuses to preview a release the install would refuse", async () => {
 		const { context } = catalogServer();
 
 		await expect(mods.preview?.(context, String(PROJECT_ID), String(foreignFile.id))).rejects.toBeInstanceOf(
@@ -902,11 +902,11 @@ describe("previewing an install", () => {
 });
 
 describe("leaving every mod change a live invoke", () => {
-	test("declares no protected action, because installing a mod destroys nothing", () => {
+	it("declares no protected action, because installing a mod destroys nothing", () => {
 		expect(mods.protectedActions).toBeUndefined();
 	});
 
-	test("keeps install, remove and toggle out of any recovery backup", () => {
+	it("keeps install, remove and toggle out of any recovery backup", () => {
 		for (const action of [
 			BridgeAction.Install,
 			BridgeAction.Remove,
@@ -918,7 +918,7 @@ describe("leaving every mod change a live invoke", () => {
 		}
 	});
 
-	test("leaves the read actions unprotected", () => {
+	it("leaves the read actions unprotected", () => {
 		for (const action of [
 			BridgeAction.Search,
 			BridgeAction.Installed,
@@ -932,7 +932,7 @@ describe("leaving every mod change a live invoke", () => {
 });
 
 describe("telling the owner what a mod change did", () => {
-	test("names the mod, the release and the game version it installed", async () => {
+	it("names the mod, the release and the game version it installed", async () => {
 		const { context, reported } = catalogServer();
 
 		await mods.install(context, String(PROJECT_ID), "5544330");
@@ -954,7 +954,7 @@ describe("telling the owner what a mod change did", () => {
 		]);
 	});
 
-	test("says the mod was already current instead of claiming a second install", async () => {
+	it("says the mod was already current instead of claiming a second install", async () => {
 		const { context, reported, downloads } = catalogServer();
 
 		await mods.install(context, String(PROJECT_ID));
@@ -966,7 +966,7 @@ describe("telling the owner what a mod change did", () => {
 		expect(reported.at(1)?.text.en).toBe("Mod HeroCore API (HeroCore 1.4.2) was already installed and up to date");
 	});
 
-	test("names the mod it removed", async () => {
+	it("names the mod it removed", async () => {
 		const { context, reported } = catalogServer();
 
 		await mods.install(context, String(PROJECT_ID));
@@ -982,7 +982,7 @@ describe("telling the owner what a mod change did", () => {
 		});
 	});
 
-	test("names the mod it turned off and back on", async () => {
+	it("names the mod it turned off and back on", async () => {
 		const { context, reported } = catalogServer();
 
 		await mods.install(context, String(PROJECT_ID));
@@ -1009,7 +1009,7 @@ describe("telling the owner what a mod change did", () => {
 		]);
 	});
 
-	test("reports nothing when a toggle moves no file", async () => {
+	it("reports nothing when a toggle moves no file", async () => {
 		const { context, reported } = catalogServer();
 
 		await mods.install(context, String(PROJECT_ID));

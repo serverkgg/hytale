@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import type { Bridge } from "@serverkgg/bridge";
 import { BridgeEventName } from "@serverkgg/bridge/protocol";
 import { players } from "./players";
@@ -57,7 +57,7 @@ const contextWith = (options: {
 };
 
 describe("listing who is on the server", () => {
-	test("keys the row by the uuid the join line carried, not by the account name /who prints", async () => {
+	it("keys the row by the uuid the join line carried, not by the account name /who prints", async () => {
 		const sent: string[] = [];
 
 		expect(
@@ -96,7 +96,7 @@ describe("moderating a player from the roster", () => {
 		username: "meslzy",
 	};
 
-	test("kicks by the account name, because the console command takes no uuid", async () => {
+	it("kicks by the account name, because the console command takes no uuid", async () => {
 		const sent: string[] = [];
 		const emitted: Emitted[] = [];
 
@@ -124,7 +124,7 @@ describe("moderating a player from the roster", () => {
 		]);
 	});
 
-	test("bans by the account name and carries the same presence payload", async () => {
+	it("bans by the account name and carries the same presence payload", async () => {
 		const sent: string[] = [];
 		const emitted: Emitted[] = [];
 
@@ -152,7 +152,7 @@ describe("telling the owner who was moderated", () => {
 		username: "meslzy",
 	};
 
-	test("names the kicked player by the account name", async () => {
+	it("names the kicked player by the account name", async () => {
 		const reported: Bridge.Activity[] = [];
 
 		await players.actions?.kick?.(
@@ -175,7 +175,7 @@ describe("telling the owner who was moderated", () => {
 		]);
 	});
 
-	test("names the banned player by the account name", async () => {
+	it("names the banned player by the account name", async () => {
 		const reported: Bridge.Activity[] = [];
 
 		await players.actions?.ban?.(

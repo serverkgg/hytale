@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, it } from "bun:test";
 import { type Bridge, BridgeUserError } from "@serverkgg/bridge";
 import { BridgeEventName } from "@serverkgg/bridge/protocol";
 import { AUTH_LOGIN_COMMAND, AUTH_STATUS_COMMAND } from "../shared";
@@ -99,7 +99,7 @@ describe("telling the owner which setup button was pressed", () => {
 		stopSetup();
 	});
 
-	test("says a new sign-in code was requested, without the code or its link", async () => {
+	it("says a new sign-in code was requested, without the code or its link", async () => {
 		const reported = await submit(SIGN_IN_STEP, RENEW_ACTION);
 
 		expect(reported).toEqual([
@@ -119,7 +119,7 @@ describe("telling the owner which setup button was pressed", () => {
 		expect(JSON.stringify(reported)).not.toContain("https://");
 	});
 
-	test("says the sign-in was cancelled", async () => {
+	it("says the sign-in was cancelled", async () => {
 		const reported = await submit(SIGN_IN_STEP, CANCEL_ACTION);
 
 		expect(
@@ -131,13 +131,13 @@ describe("telling the owner which setup button was pressed", () => {
 		).toEqual([
 			[
 				BridgeEventName.SetupAction,
-				"Cancelled the Hytale sign-in",
+				"Canceled the Hytale sign-in",
 				CANCEL_ACTION,
 			],
 		]);
 	});
 
-	test("says which step was retried", async () => {
+	it("says which step was retried", async () => {
 		const signIn = await submit(SIGN_IN_STEP, RETRY_ACTION);
 
 		stopSetup();
@@ -156,7 +156,7 @@ describe("telling the owner which setup button was pressed", () => {
 		});
 	});
 
-	test("reports nothing for a button it refuses, because the runtime reports the refusal", async () => {
+	it("reports nothing for a button it refuses, because the runtime reports the refusal", async () => {
 		const { context, reported } = submitHarness();
 
 		await expect(setup.submit?.(context, DOWNLOAD_STEP, RENEW_ACTION, {})).rejects.toBeInstanceOf(BridgeUserError);

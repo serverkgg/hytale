@@ -28,7 +28,7 @@ const accountTab: Bridge.Tab = {
 				en: "The Hytale account your server uses",
 			},
 			help: {
-				ar: "سيرفرك يدخل هايتيل بهذا الحساب. تقدر تبدّله أو تسجّل خروج منه هنا.",
+				ar: "يدخل سيرفرك هايتيل بهذا الحساب. بدّله أو سجّل الخروج منه من هنا.",
 				en: "Your server signs in to Hytale with this account. Switch it or sign it out here.",
 			},
 			module: "login",
@@ -43,18 +43,18 @@ const accountTab: Bridge.Tab = {
 				{
 					id: LOGIN_LOGOUT_ACTION,
 					label: {
-						ar: "سجّل خروج",
+						ar: "سجّل الخروج",
 						en: "Sign out",
 					},
 					confirm: BridgeConfirm.Strong,
 					confirmText: {
-						ar: "بنمسح تسجيل الدخول من سيرفرك، وما يقدر يستقبل لاعبين إلا لما تسجّل دخول من جديد.",
-						en: "We clear the sign-in from your server, and it cannot accept players until you sign in again.",
+						ar: "نحذف تسجيل الدخول من سيرفرك، ولن يستقبل لاعبين حتى تسجّل الدخول من جديد.",
+						en: "We clear the sign-in from your server, and it can't accept players until you sign in again.",
 					},
 				},
 			],
 			empty: {
-				ar: "شغّل سيرفرك أول عشان نقدر نقرأ حالة الحساب.",
+				ar: "شغّل سيرفرك أولًا لكي نقرأ حالة الحساب.",
 				en: "Start your server first so we can read its account status.",
 			},
 		},
@@ -73,8 +73,8 @@ const settingsTab: Bridge.Tab = {
 			layout: BridgeLayout.Form,
 			id: "server",
 			help: {
-				ar: "إعدادات سيرفرك الأساسية، وكل تعديل فيها يبي إعادة تشغيل.",
-				en: "Your server's core settings — every change here needs a restart.",
+				ar: "إعدادات سيرفرك الأساسية، وكل تعديل فيها يتطلب ريستارت.",
+				en: "Your server's core settings. Every change here needs a restart.",
 			},
 			target: BridgeFormTarget.Settings,
 			module: "settings",
@@ -88,7 +88,7 @@ const settingsTab: Bridge.Tab = {
 						en: "Server name",
 					},
 					help: {
-						ar: "الاسم اللي يظهر للاعبين لما يدخلون.",
+						ar: "الاسم الذي يظهر للاعبين عند دخولهم.",
 						en: "Shown to players when they join.",
 					},
 					maxLength: 48,
@@ -101,7 +101,7 @@ const settingsTab: Bridge.Tab = {
 						en: "Welcome message",
 					},
 					help: {
-						ar: "سطر قصير يشوفه اللاعب أول ما يدخل.",
+						ar: "سطر قصير يظهر للاعب عند دخوله.",
 						en: "One short line the player sees on join.",
 					},
 					maxLength: 128,
@@ -114,8 +114,8 @@ const settingsTab: Bridge.Tab = {
 						en: "Join password",
 					},
 					help: {
-						ar: "اتركها فاضية عشان يكون السيرفر مفتوح للجميع.",
-						en: "Leave empty to keep the server open to everyone.",
+						ar: "اتركها فارغة ليكون السيرفر مفتوحًا للجميع.",
+						en: "Leave it empty to keep the server open to everyone.",
 					},
 					maxLength: 32,
 				},
@@ -127,7 +127,7 @@ const settingsTab: Bridge.Tab = {
 						en: "Max players",
 					},
 					help: {
-						ar: "كل ما زاد العدد، زاد استهلاك الرام والمعالج.",
+						ar: "كلما زاد العدد، زاد استهلاك الرام والمعالج.",
 						en: "The higher it goes, the more RAM and CPU your server uses.",
 					},
 					min: 1,
@@ -141,8 +141,8 @@ const settingsTab: Bridge.Tab = {
 						en: "View distance",
 					},
 					help: {
-						ar: "أكبر عامل يستهلك الرام. هايتيل تنصح ما تتجاوز 12، وكل ما زاد يبي رام أكثر.",
-						en: "The biggest driver of RAM use. Hytale recommends staying at or below 12 — the higher it goes, the more RAM you need.",
+						ar: "أكثر ما يستهلك الرام. توصي هايتيل بألا تتجاوز 12، وكلما زاد تطلّب رامًا أكثر.",
+						en: "The biggest driver of RAM use. Hytale recommends staying at or below 12. The higher it goes, the more RAM you need.",
 					},
 					min: 1,
 					max: MAX_VIEW_RADIUS,
@@ -155,7 +155,7 @@ const settingsTab: Bridge.Tab = {
 const playersTab: Bridge.Tab = {
 	id: "players",
 	title: {
-		ar: "اللاعبين",
+		ar: "اللاعبون",
 		en: "Players",
 	},
 	icon: BridgeIcon.Users,
@@ -164,7 +164,7 @@ const playersTab: Bridge.Tab = {
 			layout: BridgeLayout.Table,
 			id: "online",
 			help: {
-				ar: "اللاعبين الداخلين سيرفرك الحين. تقدر تطرد أو تحظر أي واحد منهم.",
+				ar: "اللاعبون المتصلون بسيرفرك حاليًا. اطرد أو احظر أيًا منهم.",
 				en: "The players on your server right now. Kick or ban any of them.",
 			},
 			place: BridgePlace.Players,
@@ -189,7 +189,7 @@ const playersTab: Bridge.Tab = {
 				{
 					id: "kick",
 					label: {
-						ar: "طرد",
+						ar: "اطرد",
 						en: "Kick",
 					},
 					confirm: BridgeConfirm.Normal,
@@ -197,14 +197,14 @@ const playersTab: Bridge.Tab = {
 				{
 					id: "ban",
 					label: {
-						ar: "حظر",
+						ar: "احظر",
 						en: "Ban",
 					},
 					confirm: BridgeConfirm.Strong,
 				},
 			],
 			empty: {
-				ar: "ما فيه أحد داخل الحين.",
+				ar: "لا يوجد لاعبون متصلون حاليًا.",
 				en: "Nobody is online right now.",
 			},
 		},
@@ -223,14 +223,14 @@ const modsTab: Bridge.Tab = {
 			layout: BridgeLayout.Catalog,
 			id: "mod-list",
 			help: {
-				ar: "ركّب مودات من كيرس فورج على سيرفرك. أي تركيب أو حذف أو تعطيل ما يبان إلا بعد ما تعيد تشغيل سيرفرك.",
+				ar: "ثبّت مودات من CurseForge على سيرفرك. لا يظهر أي تثبيت أو إزالة أو إيقاف إلا بعد ريستارت سيرفرك.",
 				en: "Install CurseForge mods on your server. Every install, removal or toggle only shows after you restart your server.",
 			},
 			module: "mods",
 			restartHint: true,
 			empty: {
-				ar: "ما ركّبت أي مودات بعد. دوّر على واحد فوق وركّبه — اللاعبين ما يركّبون شي عندهم، سيرفرك يوصّل لهم المود أول ما يدخلون.",
-				en: "No mods installed yet. Search for one above and install it — your players install nothing, your server hands them the mod as they join.",
+				ar: "لا توجد مودات مثبّتة بعد. ابحث عن مود في الأعلى وثبّته. لا يلزم اللاعبين تثبيت أي شيء، فسيرفرك يرسل إليهم المود عند دخولهم.",
+				en: "No mods installed yet. Search for one above and install it. Your players install nothing, because your server sends them the mod as they join.",
 			},
 		},
 	],
@@ -252,7 +252,7 @@ const controlsTab: Bridge.Tab = {
 				en: "Quick actions",
 			},
 			help: {
-				ar: "تشتغل على طول على سيرفرك الشغّال.",
+				ar: "تُنفَّذ فورًا على سيرفرك الشغّال.",
 				en: "These run on your server right away.",
 			},
 			module: "live",
@@ -272,7 +272,7 @@ const controlsTab: Bridge.Tab = {
 								en: "Message",
 							},
 							help: {
-								ar: "توصل لكل اللي داخلين الحين.",
+								ar: "تصل إلى كل اللاعبين المتصلين حاليًا.",
 								en: "Reaches everyone who is on the server right now.",
 							},
 							maxLength: ANNOUNCE_MESSAGE_LENGTH,
@@ -289,7 +289,7 @@ const controlsTab: Bridge.Tab = {
 				en: "Whitelist",
 			},
 			help: {
-				ar: "فعّلها وما يدخل سيرفرك إلا اللي تضيفهم بأسماء حساباتهم.",
+				ar: "عند تفعيلها، لا يدخل سيرفرك إلا اللاعبون الذين تضيفهم بأسماء حساباتهم.",
 				en: "Turn it on and only the accounts you add can join your server.",
 			},
 			place: BridgePlace.Players,
@@ -310,8 +310,8 @@ const controlsTab: Bridge.Tab = {
 								en: "Turn the whitelist on",
 							},
 							help: {
-								ar: "لما تفعّلها، ما يدخل إلا اللي أضفتهم.",
-								en: "While it is on, only the players you added can join.",
+								ar: "عند تفعيلها، لا يدخل إلا اللاعبون الذين أضفتهم.",
+								en: "While it's on, only the players you added can join.",
 							},
 						},
 					],
@@ -319,7 +319,7 @@ const controlsTab: Bridge.Tab = {
 				{
 					id: "allow",
 					label: {
-						ar: "أضف للقائمة البيضاء",
+						ar: "أضف إلى القائمة البيضاء",
 						en: "Add to whitelist",
 					},
 					fields: [
@@ -331,7 +331,7 @@ const controlsTab: Bridge.Tab = {
 								en: "Player account name",
 							},
 							help: {
-								ar: "اسم حساب هايتيل بالضبط، مو الاسم الظاهر.",
+								ar: "اسم حساب هايتيل كما هو تمامًا، وليس الاسم الظاهر.",
 								en: "The exact Hytale account name, not the display name.",
 							},
 							maxLength: 32,
@@ -341,7 +341,7 @@ const controlsTab: Bridge.Tab = {
 				{
 					id: "disallow",
 					label: {
-						ar: "شِل من القائمة البيضاء",
+						ar: "أزل من القائمة البيضاء",
 						en: "Remove from whitelist",
 					},
 					fields: [
@@ -353,8 +353,8 @@ const controlsTab: Bridge.Tab = {
 								en: "Player account name",
 							},
 							help: {
-								ar: "إذا كان اللاعب داخل الحين، يطلع بعد إعادة التشغيل الجاية.",
-								en: "If the player is online right now, they are out after the next restart.",
+								ar: "إذا كان اللاعب متصلًا حاليًا، يخرج بعد الريستارت التالي.",
+								en: "If the player is online right now, they're out after the next restart.",
 							},
 							maxLength: 32,
 						},

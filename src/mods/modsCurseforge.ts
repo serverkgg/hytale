@@ -41,7 +41,7 @@ export const CATEGORY_LABELS: Record<string, Bridge.Text> = {
 		en: "Blocks",
 	},
 	"9286": {
-		ar: "توليد العوالم",
+		ar: "توليد المابات",
 		en: "World Gen",
 	},
 	"9287": {
@@ -93,7 +93,7 @@ export const CATEGORY_LABELS: Record<string, Bridge.Text> = {
 		en: "Minigames",
 	},
 	"10794": {
-		ar: 'نهائيات "New Worlds"',
+		ar: "نهائيات «New Worlds»",
 		en: '"New Worlds" Finalists',
 	},
 };

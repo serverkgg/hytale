@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { BridgeControl, BridgeLayout, BridgeSetupStepKind } from "@serverkgg/bridge";
 import { GuideOpenTab } from "@serverkgg/bridge/guides";
 import { isBridgeEventName } from "@serverkgg/bridge/protocol";
@@ -32,19 +32,19 @@ const ROSTER_KEYS = Object.keys(
 );
 
 describe("wiring the terminal autocomplete to the live roster", () => {
-	test("completes every argument from a module the driver actually registers", () => {
+	it("completes every argument from a module the driver actually registers", () => {
 		for (const arg of args) {
 			expect(Object.keys(modules)).toContain(arg.module ?? "");
 		}
 	});
 
-	test("completes every argument from a column that module's table shows", () => {
+	it("completes every argument from a column that module's table shows", () => {
 		for (const arg of args) {
 			expect(columnsOf(arg.module ?? "")).toContain(arg.column ?? "");
 		}
 	});
 
-	test("completes every argument from a field the roster really carries", () => {
+	it("completes every argument from a field the roster really carries", () => {
 		for (const arg of args) {
 			expect(ROSTER_KEYS).toContain(arg.column ?? "");
 		}
@@ -52,13 +52,13 @@ describe("wiring the terminal autocomplete to the live roster", () => {
 });
 
 describe("wiring the players table to the roster the collection returns", () => {
-	test("shows only columns the roster carries", () => {
+	it("shows only columns the roster carries", () => {
 		for (const key of columnsOf("players")) {
 			expect(ROSTER_KEYS).toContain(key);
 		}
 	});
 
-	test("shows the display name and the account name /who prints", () => {
+	it("shows the display name and the account name /who prints", () => {
 		expect(columnsOf("players")).toEqual([
 			"name",
 			"username",
@@ -76,7 +76,7 @@ const formSection = (tabId: string, sectionId: string) => {
 };
 
 describe("walking the customer through the first run", () => {
-	test("asks for the sign-in and the download before anything optional", () => {
+	it("asks for the sign-in and the download before anything optional", () => {
 		expect(steps.map((step) => step.id)).toEqual([
 			"sign-in",
 			"download",
@@ -85,27 +85,27 @@ describe("walking the customer through the first run", () => {
 		]);
 	});
 
-	test("drives the sign-in and the download from the driver itself", () => {
+	it("drives the sign-in and the download from the driver itself", () => {
 		expect(steps.filter((step) => step.kind === BridgeSetupStepKind.Driver).map((step) => step.id)).toEqual([
 			"sign-in",
 			"download",
 		]);
 	});
 
-	test("needs a running server for the sign-in, because the code comes out of the console", () => {
+	it("needs a running server for the sign-in, because the code comes out of the console", () => {
 		const signIn = steps.find((step) => step.id === "sign-in");
 
 		expect(signIn?.kind === BridgeSetupStepKind.Driver && signIn.requiresRunning).toBe(true);
 	});
 
-	test("lets the customer skip only the two steps a server runs fine without", () => {
+	it("lets the customer skip only the two steps a server runs fine without", () => {
 		expect(steps.filter((step) => step.required === false).map((step) => step.id)).toEqual([
 			"name",
 			"invite",
 		]);
 	});
 
-	test("points the form step at a form section the panel really declares", () => {
+	it("points the form step at a form section the panel really declares", () => {
 		for (const step of steps) {
 			if (step.kind !== BridgeSetupStepKind.Form) {
 				continue;
@@ -115,7 +115,7 @@ describe("walking the customer through the first run", () => {
 		}
 	});
 
-	test("names only fields that section really carries", () => {
+	it("names only fields that section really carries", () => {
 		for (const step of steps) {
 			if (step.kind !== BridgeSetupStepKind.Form) {
 				continue;
@@ -129,13 +129,13 @@ describe("walking the customer through the first run", () => {
 		}
 	});
 
-	test("sends the invite step to the access page, where the address lives", () => {
+	it("sends the invite step to the access page, where the address lives", () => {
 		const invite = steps.find((step) => step.id === "invite");
 
 		expect(invite?.kind === BridgeSetupStepKind.Open && invite.target.tab).toBe(GuideOpenTab.Access);
 	});
 
-	test("titles and explains every step in both arabic and english", () => {
+	it("titles and explains every step in both arabic and english", () => {
 		for (const step of steps) {
 			expect(step.title.ar.length).toBeGreaterThan(0);
 			expect(step.title.en.length).toBeGreaterThan(0);
@@ -144,7 +144,7 @@ describe("walking the customer through the first run", () => {
 		}
 	});
 
-	test("leaves the sign-in to the setup page, so the account detail no longer starts one", () => {
+	it("leaves the sign-in to the setup page, so the account detail no longer starts one", () => {
 		const account = sections.find((section) => section.id === "hytale-account");
 		const actions = (account?.layout === BridgeLayout.Detail ? (account.actions ?? []) : []).map((action) => action.id);
 
@@ -161,7 +161,7 @@ const formFields = (tabId: string, sectionId: string) => {
 };
 
 describe("keeping the customer's own secrets out of everyone else's hands", () => {
-	test("keeps the join password a secret", () => {
+	it("keeps the join password a secret", () => {
 		const password = formFields("settings", "server").find((field) => field.key === "Password");
 
 		expect(password?.control).toBe(BridgeControl.Secret);
@@ -169,7 +169,7 @@ describe("keeping the customer's own secrets out of everyone else's hands", () =
 });
 
 describe("assembling the hytale driver", () => {
-	test("registers every module the panel binds a section to", () => {
+	it("registers every module the panel binds a section to", () => {
 		for (const section of sections) {
 			if (section.layout !== BridgeLayout.Form) {
 				expect(Object.keys(modules)).toContain(section.module);
@@ -177,7 +177,7 @@ describe("assembling the hytale driver", () => {
 		}
 	});
 
-	test("declares every capability the panel and the platform depend on", () => {
+	it("declares every capability the panel and the platform depend on", () => {
 		expect(driver.install).toBeDefined();
 		expect(driver.lifecycle).toBeDefined();
 		expect(driver.events).toBeDefined();
@@ -189,7 +189,7 @@ describe("assembling the hytale driver", () => {
 		expect(driver.panel).toBeDefined();
 	});
 
-	test("registers the settings, players, login, live and mods modules the tabs reference", () => {
+	it("registers the settings, players, login, live and mods modules the tabs reference", () => {
 		expect(Object.keys(modules)).toEqual([
 			"settings",
 			"players",
@@ -199,11 +199,11 @@ describe("assembling the hytale driver", () => {
 		]);
 	});
 
-	test("keeps the setup singleton out of the panel modules, because its id is reserved", () => {
+	it("keeps the setup singleton out of the panel modules, because its id is reserved", () => {
 		expect(Object.keys(modules)).not.toContain("setup");
 	});
 
-	test("emits only names the platform's event taxonomy knows", () => {
+	it("emits only names the platform's event taxonomy knows", () => {
 		const declared = [
 			...(driver.events?.patterns ?? []).map((pattern) => pattern.emit),
 			...(driver.events?.emits ?? []),

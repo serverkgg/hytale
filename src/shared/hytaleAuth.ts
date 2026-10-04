@@ -142,8 +142,8 @@ export const startDeviceLogin = async (context: Bridge.Context): Promise<HytaleD
 
 	if (device === null) {
 		throw new BridgeUserError({
-			ar: "هايتيل ما طبع رمز الدخول. افتح تبويب الكونسول عشان تشوف وش رد، وجرّب مرة ثانية.",
-			en: "Hytale printed no device code. Open the console tab to read what it answered, then try again.",
+			ar: "لم يُظهر هايتيل رمز الدخول. افتح تبويب الكونسول لمعرفة رده، ثم جرب مرة ثانية.",
+			en: "Hytale didn't print a sign-in code. Open the Console tab to read its answer, then try again.",
 		});
 	}
 

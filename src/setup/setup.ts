@@ -41,7 +41,7 @@ const RENEWED_SIGN_IN: Bridge.Text = {
 
 const CANCELLED_SIGN_IN: Bridge.Text = {
 	ar: "تم إلغاء تسجيل دخول السيرفر في هايتيل",
-	en: "Cancelled the Hytale sign-in",
+	en: "Canceled the Hytale sign-in",
 };
 
 const reportAction = (context: Bridge.Context, step: string, action: string, text: Bridge.Text) => {
@@ -67,8 +67,8 @@ export const setup: Bridge.Setup = {
 				en: "Sign your server in",
 			},
 			help: {
-				ar: "سيرفرك يعرّف نفسه على شبكة هايتيل بحسابك أنت، مرة وحدة بس. بيطلع لك رمز ورابط تحت — افتح الرابط وسجّل دخول بحساب هايتيل حقك.",
-				en: "Your server identifies itself to the Hytale network with your own account, once. A code and a link appear below — open the link and sign in with your Hytale account.",
+				ar: "يعرّف سيرفرك نفسه على شبكة هايتيل بحسابك أنت، مرة واحدة فقط. يظهر رمز ورابط في الأسفل، فافتح الرابط وسجّل الدخول بحساب هايتيل الخاص بك.",
+				en: "Your server identifies itself to the Hytale network with your own account, once. A code and a link appear below. Open the link and sign in with your Hytale account.",
 			},
 		},
 		{
@@ -79,7 +79,7 @@ export const setup: Bridge.Setup = {
 				en: "Download the game files",
 			},
 			help: {
-				ar: "بعد الدخول ينزّل سيرفرك ملفات اللعبة لحاله. حجمها كبير فتاخذ شوي، وبعدها يعيد التشغيل على نسخة اللعبة الكاملة.",
+				ar: "بعد تسجيل الدخول ينزّل سيرفرك ملفات اللعبة تلقائيًا. حجمها كبير لذلك يستغرق التنزيل بعض الوقت، ثم يتم ريستارت السيرفر على اللعبة الكاملة.",
 				en: "After the sign-in your server downloads the game files on its own. They are large, so it takes a while, then it restarts on the full game.",
 			},
 		},
@@ -96,11 +96,11 @@ export const setup: Bridge.Setup = {
 				"MaxPlayers",
 			],
 			title: {
-				ar: "سمِّ سيرفرك",
+				ar: "سمّ سيرفرك",
 				en: "Name your server",
 			},
 			help: {
-				ar: "الاسم اللي يشوفه اللاعبين، رسالة الترحيب، كلمة مرور الدخول، وعدد اللاعبين. تقدر تتخطاها وتعدّلها بعدين من تبويب الإعدادات.",
+				ar: "الاسم الذي يظهر للاعبين، ورسالة الترحيب، وكلمة مرور الدخول، وعدد اللاعبين. تخطَّ هذه الخطوة إذا أردت، وعدّلها لاحقًا من تبويب الإعدادات.",
 				en: "The name players see, the welcome message, the join password and the player slots. You can skip this and change it later from the Settings tab.",
 			},
 		},
@@ -112,11 +112,11 @@ export const setup: Bridge.Setup = {
 				tab: GuideOpenTab.Access,
 			},
 			title: {
-				ar: "عزّم أصحابك",
+				ar: "ادعُ أصحابك",
 				en: "Invite your friends",
 			},
 			help: {
-				ar: "انسخ عنوان سيرفرك وأرسله لأصحابك عشان يدخلون معك من Direct Connect.",
+				ar: "انسخ عنوان سيرفرك وأرسله إلى أصحابك ليدخلوا معك من Direct Connect.",
 				en: "Copy your server address and send it to your friends so they can join you from Direct Connect.",
 			},
 		},

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, jest, test } from "bun:test";
+import { afterEach, describe, expect, it, jest } from "bun:test";
 import { type Bridge, BridgeSetupPromptKind, BridgeSetupStepState } from "@serverkgg/bridge";
 import { BridgeEventName } from "@serverkgg/bridge/protocol";
 import {
@@ -55,19 +55,19 @@ const progressOf = (line: string) => {
 };
 
 describe("reading the console lines the bootstrap prints", () => {
-	test("reads the percent and the sizes off a real download line", () => {
+	it("reads the percent and the sizes off a real download line", () => {
 		expect(progressOf(PROGRESS_LINE)).toEqual({
 			percent: 10,
 			detail: "146.6 MiB / 1.4 GiB",
 		});
 	});
 
-	test("fires on the line that says the payload is installed", () => {
+	it("fires on the line that says the payload is installed", () => {
 		expect(DOWNLOAD_COMPLETE.test(COMPLETE_LINE)).toBe(true);
 		expect(DOWNLOAD_COMPLETE.test(PROGRESS_LINE)).toBe(false);
 	});
 
-	test("keeps the bar inside its range and drops an empty detail", () => {
+	it("keeps the bar inside its range and drops an empty detail", () => {
 		expect(progressOf("Download progress: 120% (   )")).toEqual({
 			percent: 100,
 			detail: null,
@@ -76,7 +76,7 @@ describe("reading the console lines the bootstrap prints", () => {
 });
 
 describe("the runtime the driver reports for each phase", () => {
-	test("waits on the server while it boots, with the sign-in already active", () => {
+	it("waits on the server while it boots, with the sign-in already active", () => {
 		expect(startingRuntime()).toEqual(
 			runtimeOf({
 				phase: HytaleSetupPhase.Starting,
@@ -99,7 +99,7 @@ describe("the runtime the driver reports for each phase", () => {
 		).toBe(BridgeSetupPromptKind.Wait);
 	});
 
-	test("hands a signed-out bootstrap server the link, the code and its expiry", () => {
+	it("hands a signed-out bootstrap server the link, the code and its expiry", () => {
 		const prompt = runtimeOf({
 			phase: HytaleSetupPhase.Waiting,
 			device: DEVICE,
@@ -117,7 +117,7 @@ describe("the runtime the driver reports for each phase", () => {
 		]);
 	});
 
-	test("moves to the download the moment the sign-in succeeds", () => {
+	it("moves to the download the moment the sign-in succeeds", () => {
 		expect(
 			statesOf({
 				phase: HytaleSetupPhase.Downloading,
@@ -130,7 +130,7 @@ describe("the runtime the driver reports for each phase", () => {
 		]);
 	});
 
-	test("carries the percent and the sizes into the progress prompt", () => {
+	it("carries the percent and the sizes into the progress prompt", () => {
 		expect(
 			runtimeOf({
 				phase: HytaleSetupPhase.Downloading,
@@ -144,7 +144,7 @@ describe("the runtime the driver reports for each phase", () => {
 		});
 	});
 
-	test("tells the customer to wait for the relaunch once the payload is installed", () => {
+	it("tells the customer to wait for the relaunch once the payload is installed", () => {
 		const runtime = runtimeOf({
 			phase: HytaleSetupPhase.Installed,
 		});
@@ -153,7 +153,7 @@ describe("the runtime the driver reports for each phase", () => {
 		expect(runtime.prompt?.kind).toBe(BridgeSetupPromptKind.Wait);
 	});
 
-	test("ends the flow with both steps done and nothing left to answer", () => {
+	it("ends the flow with both steps done and nothing left to answer", () => {
 		expect(
 			runtimeOf({
 				phase: HytaleSetupPhase.Ready,
@@ -173,7 +173,7 @@ describe("the runtime the driver reports for each phase", () => {
 		});
 	});
 
-	test("offers a new code once the renew budget is spent", () => {
+	it("offers a new code once the renew budget is spent", () => {
 		const prompt = runtimeOf({
 			phase: HytaleSetupPhase.Expired,
 		}).prompt;
@@ -184,7 +184,7 @@ describe("the runtime the driver reports for each phase", () => {
 		]);
 	});
 
-	test("offers a new code again after a sign-out, with the sign-in step re-opened", () => {
+	it("offers a new code again after a sign-out, with the sign-in step re-opened", () => {
 		expect(
 			statesOf({
 				phase: HytaleSetupPhase.SignedOut,
@@ -195,7 +195,7 @@ describe("the runtime the driver reports for each phase", () => {
 		]);
 	});
 
-	test("fails the step that broke, and never the one that already passed", () => {
+	it("fails the step that broke, and never the one that already passed", () => {
 		expect(
 			statesOf({
 				phase: HytaleSetupPhase.Failed,
@@ -225,7 +225,7 @@ describe("the runtime the driver reports for each phase", () => {
 		]);
 	});
 
-	test("puts a retry button on every failure", () => {
+	it("puts a retry button on every failure", () => {
 		const prompt = runtimeOf({
 			phase: HytaleSetupPhase.Failed,
 			step: "download",
@@ -241,7 +241,7 @@ describe("the runtime the driver reports for each phase", () => {
 		]);
 	});
 
-	test("writes every prompt in both arabic and english", () => {
+	it("writes every prompt in both arabic and english", () => {
 		const prompts = [
 			runtimeOf({
 				phase: HytaleSetupPhase.Starting,
@@ -270,13 +270,13 @@ describe("the runtime the driver reports for each phase", () => {
 });
 
 describe("deciding what a boot has to do", () => {
-	test("takes a bootstrap server straight to the sign-in unless the console says it is signed in", () => {
+	it("takes a bootstrap server straight to the sign-in unless the console says it is signed in", () => {
 		expect(signedInAt(HytaleStage.Bootstrap, HytaleAuthState.SignedIn)).toBe(true);
 		expect(signedInAt(HytaleStage.Bootstrap, HytaleAuthState.SignedOut)).toBe(false);
 		expect(signedInAt(HytaleStage.Bootstrap, HytaleAuthState.Unknown)).toBe(false);
 	});
 
-	test("only re-opens the sign-in on an installed server when the console really said signed out", () => {
+	it("only re-opens the sign-in on an installed server when the console really said signed out", () => {
 		expect(signedInAt(HytaleStage.Server, HytaleAuthState.SignedIn)).toBe(true);
 		expect(signedInAt(HytaleStage.Server, HytaleAuthState.SignedOut)).toBe(false);
 		expect(signedInAt(HytaleStage.Server, HytaleAuthState.Unknown)).toBe(true);
@@ -284,7 +284,7 @@ describe("deciding what a boot has to do", () => {
 });
 
 describe("the renew budget", () => {
-	test("keeps renewing until the budget is spent", () => {
+	it("keeps renewing until the budget is spent", () => {
 		expect(exhausted(0)).toBe(false);
 		expect(exhausted(RENEW_LIMIT - 1)).toBe(false);
 		expect(exhausted(RENEW_LIMIT)).toBe(true);
@@ -388,7 +388,7 @@ describe("the run a setup entry point waits on", () => {
 		stopSetup();
 	});
 
-	test("answers the moment the run reports, rather than at the end of the flow", async () => {
+	it("answers the moment the run reports, rather than at the end of the flow", async () => {
 		const { context, reports } = harness();
 
 		await advanceSetup(context);
@@ -400,7 +400,7 @@ describe("the run a setup entry point waits on", () => {
 		]);
 	});
 
-	test("resolves the caller when the run is stopped before it ever reports", async () => {
+	it("resolves the caller when the run is stopped before it ever reports", async () => {
 		const { context, reports } = harness();
 
 		const renewing = renewSignIn(context);
@@ -416,7 +416,7 @@ describe("the run a setup entry point waits on", () => {
 		expect(reports).toEqual([]);
 	});
 
-	test("frees a waiting caller even when the cancel that supersedes it fails", async () => {
+	it("frees a waiting caller even when the cancel that supersedes it fails", async () => {
 		const { context } = harness(1);
 
 		const renewing = renewSignIn(context);
@@ -428,7 +428,7 @@ describe("the run a setup entry point waits on", () => {
 		await renewing;
 	});
 
-	test("never lets one run's report answer another run's caller", async () => {
+	it("never lets one run's report answer another run's caller", async () => {
 		const { context, reports } = harness();
 
 		const renewing = renewSignIn(context);
@@ -593,7 +593,7 @@ describe("the activity the setup flow reports on its own", () => {
 		jest.useRealTimers();
 	});
 
-	test("reports the sign-in and the finished download as two completed steps", async () => {
+	it("reports the sign-in and the finished download as two completed steps", async () => {
 		jest.useFakeTimers();
 
 		const { context, reported, runtimes } = flowHarness({
@@ -626,7 +626,7 @@ describe("the activity the setup flow reports on its own", () => {
 		expectNoSignInSecret(reported);
 	});
 
-	test("reports the sign-in expired once every renewal ran out", async () => {
+	it("reports the sign-in expired once every renewal ran out", async () => {
 		jest.useFakeTimers();
 
 		const { context, reported, runtimes } = flowHarness({
@@ -644,7 +644,7 @@ describe("the activity the setup flow reports on its own", () => {
 			{
 				name: BridgeEventName.SignInExpired,
 				text: {
-					ar: "انتهى وقت كل رموز الدخول قبل ما يكتمل تسجيل الدخول في هايتيل",
+					ar: "انتهت صلاحية كل رموز الدخول قبل اكتمال تسجيل الدخول في هايتيل",
 					en: "Every sign-in code ran out before the Hytale sign-in finished",
 				},
 				details: {
@@ -656,7 +656,7 @@ describe("the activity the setup flow reports on its own", () => {
 		expectNoSignInSecret(reported);
 	});
 
-	test("reports a stalled download with the text the failed prompt shows", async () => {
+	it("reports a stalled download with the text the failed prompt shows", async () => {
 		jest.useFakeTimers();
 
 		const { context, reported, runtimes } = flowHarness({
@@ -682,7 +682,7 @@ describe("the activity the setup flow reports on its own", () => {
 		expectNoSignInSecret(reported);
 	});
 
-	test("reports a step the flow could not carry on with the text the failed prompt shows", async () => {
+	it("reports a step the flow could not carry on with the text the failed prompt shows", async () => {
 		jest.useFakeTimers();
 
 		const { context, reported, runtimes } = flowHarness({
@@ -710,10 +710,10 @@ describe("the activity the setup flow reports on its own", () => {
 				},
 			},
 		]);
-		expect(reported.at(0)?.text.en).toStartWith("Hytale printed no device code");
+		expect(reported.at(0)?.text.en).toStartWith("Hytale didn't print a sign-in code");
 	});
 
-	test("reports nothing for a run that was stopped before it finished", async () => {
+	it("reports nothing for a run that was stopped before it finished", async () => {
 		jest.useFakeTimers();
 
 		const { context, reported, runtimes } = flowHarness({

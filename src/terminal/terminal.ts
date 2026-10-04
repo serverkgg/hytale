@@ -15,36 +15,36 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/help",
 		summary: {
-			ar: "يعرض كل الأوامر المتاحة، و`/help <أمر>` يشرح أمر واحد.",
-			en: "List every available command — `/help <command>` explains one.",
+			ar: "يعرض كل الأوامر المتاحة، و`/help <أمر>` يشرح أمرًا واحدًا.",
+			en: "List every available command. `/help <command>` explains one.",
 		},
 		syntax: "/help [command]",
 	},
 	{
 		name: "/commands dump",
 		summary: {
-			ar: "يطلّع كل أوامر سيرفرك في ملف، وهذي أصدق قائمة لنسختك.",
-			en: "Export every command your server registers to a file — the truest list for your build.",
+			ar: "يُصدّر كل أوامر سيرفرك إلى ملف، وهي أدق قائمة لإصدارك.",
+			en: "Export every command your server registers to a file. It's the most accurate list for your build.",
 		},
 	},
 	{
 		name: "/version",
 		summary: {
-			ar: "يعرض نسخة سيرفرك بالضبط.",
+			ar: "يعرض إصدار سيرفرك بالضبط.",
 			en: "Show the exact version your server runs.",
 		},
 	},
 	{
 		name: "/who",
 		summary: {
-			ar: "يعرض اللاعبين الداخلين الحين.",
+			ar: "يعرض اللاعبين المتصلين حاليًا.",
 			en: "List the players who are online.",
 		},
 	},
 	{
 		name: "/say",
 		summary: {
-			ar: "رسالة تظهر لكل اللاعبين في كل العوالم.",
+			ar: "رسالة تظهر لكل اللاعبين في كل المابات.",
 			en: "Announce a message to everyone, in every world.",
 		},
 		syntax: "/say <message>",
@@ -52,7 +52,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/notify",
 		summary: {
-			ar: "تنبيه صغير يطلع لكل اللاعبين على الشاشة.",
+			ar: "تنبيه صغير يظهر لكل اللاعبين على الشاشة.",
 			en: "Pop a small on-screen notification for every player.",
 		},
 		syntax: "/notify <message>",
@@ -81,88 +81,88 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/server stats gc",
 		summary: {
-			ar: "يعرض إحصائيات تفضية الرام.",
+			ar: "يعرض إحصائيات تفريغ الرام.",
 			en: "Show garbage-collection stats.",
 		},
 	},
 	{
 		name: "/server gc",
 		summary: {
-			ar: "يفضّي الرام اللي ما عاد لها داعي. يفيد لما ترتفع فجأة.",
-			en: "Free the memory nothing needs any more — useful when RAM spikes.",
+			ar: "يفرّغ الرام غير المستخدمة، ويفيد عند ارتفاعها فجأة.",
+			en: "Free the memory nothing needs any more. Useful when RAM spikes.",
 		},
 	},
 	{
 		name: "/server dump",
 		summary: {
-			ar: "يطلّع تقرير كامل عن حالة سيرفرك في ملف.",
+			ar: "يُصدّر تقريرًا كاملًا عن حالة سيرفرك إلى ملف.",
 			en: "Dump a full report of your server's state to a file.",
 		},
 	},
 	{
 		name: "/backup",
 		summary: {
-			ar: "ياخذ نسخة من عالمك على طول، زيادة على نسخنا الاحتياطية.",
+			ar: "يأخذ لقطة من مابك فورًا، إضافة إلى نسخنا الاحتياطية.",
 			en: "Take a snapshot of your world right now, on top of our own backups.",
 		},
 	},
 	{
 		name: "/maxplayers",
 		summary: {
-			ar: "يعرض أقصى عدد لاعبين، و`--amount` يغيّره.",
-			en: "Show the maximum player count — `--amount` changes it.",
+			ar: "يعرض أقصى عدد للاعبين، و`--amount` يغيّره.",
+			en: "Show the maximum player count. `--amount` changes it.",
 		},
 		syntax: "/maxplayers [--amount <n>]",
 	},
 	{
 		name: "/maxviewradius",
 		summary: {
-			ar: "يعرض أو يغيّر مدى الرؤية لكل السيرفر، و`reset` يرجّعه للأصل.",
-			en: "Show or set the server-wide view distance — `reset` puts it back.",
+			ar: "يعرض مدى الرؤية للسيرفر كله أو يغيّره، و`reset` يعيده إلى قيمته الأصلية.",
+			en: "Show or set the server-wide view distance. `reset` puts it back.",
 		},
 		syntax: "/maxviewradius [<n>|reset]",
 	},
 	{
 		name: "/maxviewradius reset",
 		summary: {
-			ar: "يرجّع مدى الرؤية لكل السيرفر لقيمته الأصلية.",
+			ar: "يعيد مدى الرؤية للسيرفر كله إلى قيمته الأصلية.",
 			en: "Put the server-wide view distance back to its default.",
 		},
 	},
 	{
 		name: "/world list",
 		summary: {
-			ar: "يعرض العوالم اللي في سيرفرك.",
+			ar: "يعرض المابات الموجودة في سيرفرك.",
 			en: "List the worlds in your universe.",
 		},
 	},
 	{
 		name: "/world save",
 		summary: {
-			ar: "يحفظ العالم على القرص على طول، ولازم `--confirm` معه.",
-			en: "Write the world to disk right now — it needs `--confirm`.",
+			ar: "يحفظ الماب على القرص فورًا، ويتطلب `--confirm`.",
+			en: "Write the world to disk right now. It needs `--confirm`.",
 		},
 		syntax: "/world save [--world <name>|--all] --confirm",
 	},
 	{
 		name: "/world perf",
 		summary: {
-			ar: "يعرض أداء العالم.",
+			ar: "يعرض أداء الماب.",
 			en: "Show a world's performance.",
 		},
 	},
 	{
 		name: "/world perf reset",
 		summary: {
-			ar: "يصفّر إحصائيات أداء العالم ويبدأ القياس من جديد.",
+			ar: "ينفّذ ريسيت لإحصائيات أداء الماب ويبدأ القياس من جديد.",
 			en: "Reset a world's performance stats and start measuring again.",
 		},
 	},
 	{
 		name: "/world tps",
 		summary: {
-			ar: "يعرض أو يغيّر سرعة محاكاة العالم، و`reset` يرجّعها للأصل.",
-			en: "Show or set a world's simulation speed — `reset` puts it back.",
+			ar: "يعرض سرعة محاكاة الماب أو يغيّرها، و`reset` يعيدها إلى قيمتها الأصلية.",
+			en: "Show or set a world's simulation speed. `reset` puts it back.",
 		},
 		syntax: "/world tps <rate>",
 		danger: true,
@@ -170,14 +170,14 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/world tps reset",
 		summary: {
-			ar: "يرجّع سرعة محاكاة العالم لقيمتها الأصلية.",
+			ar: "يعيد سرعة محاكاة الماب إلى قيمتها الأصلية.",
 			en: "Put a world's simulation speed back to its default.",
 		},
 	},
 	{
 		name: "/world config pvp",
 		summary: {
-			ar: "يفعّل أو يطفّي قتال اللاعبين في العالم.",
+			ar: "يفعّل قتال اللاعبين في الماب أو يوقفه.",
 			en: "Turn player-versus-player combat on or off in a world.",
 		},
 		syntax: "/world config pvp <on|off>",
@@ -185,7 +185,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/world settings pvp set",
 		summary: {
-			ar: "يضبط إعداد قتال اللاعبين للعالم.",
+			ar: "يضبط إعداد قتال اللاعبين في الماب.",
 			en: "Set the world's PvP setting.",
 		},
 		syntax: "/world settings pvp set <on|off>",
@@ -193,7 +193,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/world settings gamemode set",
 		summary: {
-			ar: "يضبط وضع اللعب الافتراضي للعالم.",
+			ar: "يضبط وضع اللعب الافتراضي للماب.",
 			en: "Set the world's default game mode.",
 		},
 		syntax: "/world settings gamemode set <adventure|creative>",
@@ -201,7 +201,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/world settings keeploaded set",
 		summary: {
-			ar: "يضبط إذا كان العالم يبقى محمّل حتى بدون لاعبين فيه.",
+			ar: "يحدد هل تبقى الماب محمّلة حتى دون وجود لاعبين فيها.",
 			en: "Set whether the world stays loaded even with nobody in it.",
 		},
 		syntax: "/world settings keeploaded set <on|off>",
@@ -209,7 +209,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/world remove",
 		summary: {
-			ar: "يحذف عالم من سيرفرك.",
+			ar: "يحذف ماب من سيرفرك.",
 			en: "Delete a world from your server.",
 		},
 		syntax: "/world remove <name>",
@@ -218,7 +218,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/world prune",
 		summary: {
-			ar: "يحذف كل العوالم اللي ما فيها أحد ومو العالم الأساسي.",
+			ar: "يحذف كل المابات الخالية من اللاعبين، باستثناء الماب الأساسية.",
 			en: "Delete every non-default world nobody is standing in.",
 		},
 		danger: true,
@@ -226,7 +226,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/kick",
 		summary: {
-			ar: "يطرد لاعب من السيرفر.",
+			ar: "يطرد لاعبًا من السيرفر.",
 			en: "Kick a player from the server.",
 		},
 		syntax: "/kick <player>",
@@ -237,8 +237,8 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/ban",
 		summary: {
-			ar: "يحظر لاعب من السيرفر، و`--reason` يكتب السبب.",
-			en: "Ban a player from the server — `--reason` records why.",
+			ar: "يحظر لاعبًا من السيرفر، و`--reason` يسجّل السبب.",
+			en: "Ban a player from the server. `--reason` records why.",
 		},
 		syntax: "/ban <player> [--reason <text>]",
 		args: [
@@ -267,28 +267,28 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/whitelist disable",
 		summary: {
-			ar: "يطفّي القائمة البيضاء.",
+			ar: "يوقف القائمة البيضاء.",
 			en: "Turn the whitelist off.",
 		},
 	},
 	{
 		name: "/whitelist status",
 		summary: {
-			ar: "يعرض إذا كانت القائمة البيضاء شغّالة أو لا.",
+			ar: "يعرض هل القائمة البيضاء مفعّلة أم لا.",
 			en: "Show whether the whitelist is on.",
 		},
 	},
 	{
 		name: "/whitelist list",
 		summary: {
-			ar: "يعرض اللاعبين اللي في القائمة البيضاء.",
+			ar: "يعرض اللاعبين الموجودين في القائمة البيضاء.",
 			en: "List the players on the whitelist.",
 		},
 	},
 	{
 		name: "/whitelist add",
 		summary: {
-			ar: "يضيف لاعب للقائمة البيضاء.",
+			ar: "يضيف لاعبًا إلى القائمة البيضاء.",
 			en: "Add a player to the whitelist.",
 		},
 		syntax: "/whitelist add <player>",
@@ -299,7 +299,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/whitelist remove",
 		summary: {
-			ar: "يشيل لاعب من القائمة البيضاء.",
+			ar: "يزيل لاعبًا من القائمة البيضاء.",
 			en: "Remove a player from the whitelist.",
 		},
 		syntax: "/whitelist remove <player>",
@@ -310,15 +310,15 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/whitelist clear",
 		summary: {
-			ar: "يمسح القائمة البيضاء كاملة.",
-			en: "Wipe the whole whitelist.",
+			ar: "يحذف القائمة البيضاء بالكامل.",
+			en: "Clear the whole whitelist.",
 		},
 		danger: true,
 	},
 	{
 		name: "/op add",
 		summary: {
-			ar: "يعطي لاعب صلاحيات أدمن كاملة على سيرفرك.",
+			ar: "يعطي لاعبًا صلاحيات أدمن كاملة على سيرفرك.",
 			en: "Give a player full admin powers on your server.",
 		},
 		syntax: "/op add <player>",
@@ -365,7 +365,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/perm user add",
 		summary: {
-			ar: "يضيف عقدة صلاحية للاعب.",
+			ar: "يضيف عقدة صلاحية إلى لاعب.",
 			en: "Add a permission node to a player.",
 		},
 		syntax: "/perm user add <player> <node>",
@@ -377,7 +377,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/perm user remove",
 		summary: {
-			ar: "يشيل عقدة صلاحية من لاعب.",
+			ar: "يزيل عقدة صلاحية من لاعب.",
 			en: "Remove a permission node from a player.",
 		},
 		syntax: "/perm user remove <player> <node>",
@@ -389,7 +389,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/perm user list",
 		summary: {
-			ar: "يعرض عقد الصلاحيات اللي عند لاعب.",
+			ar: "يعرض عقد الصلاحيات التي يملكها لاعب.",
 			en: "List the permission nodes a player has.",
 		},
 		syntax: "/perm user list <player>",
@@ -400,7 +400,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/perm user group add",
 		summary: {
-			ar: "يضيف لاعب لمجموعة صلاحيات.",
+			ar: "يضيف لاعبًا إلى مجموعة صلاحيات.",
 			en: "Add a player to a permission group.",
 		},
 		syntax: "/perm user group add <player> <group>",
@@ -412,7 +412,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/perm user group remove",
 		summary: {
-			ar: "يشيل لاعب من مجموعة صلاحيات.",
+			ar: "يزيل لاعبًا من مجموعة صلاحيات.",
 			en: "Remove a player from a permission group.",
 		},
 		syntax: "/perm user group remove <player> <group>",
@@ -424,7 +424,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/perm user group list",
 		summary: {
-			ar: "يعرض مجموعات الصلاحيات اللي عليها لاعب.",
+			ar: "يعرض مجموعات الصلاحيات التي ينتمي إليها لاعب.",
 			en: "List the permission groups a player belongs to.",
 		},
 		syntax: "/perm user group list <player>",
@@ -443,7 +443,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/perm group add",
 		summary: {
-			ar: "يضيف عقدة صلاحية لمجموعة.",
+			ar: "يضيف عقدة صلاحية إلى مجموعة.",
 			en: "Add a permission node to a group.",
 		},
 		syntax: "/perm group add <group> <node>",
@@ -452,7 +452,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/perm group remove",
 		summary: {
-			ar: "يشيل عقدة صلاحية من مجموعة.",
+			ar: "يزيل عقدة صلاحية من مجموعة.",
 			en: "Remove a permission node from a group.",
 		},
 		syntax: "/perm group remove <group> <node>",
@@ -461,7 +461,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/perm group list",
 		summary: {
-			ar: "يعرض عقد الصلاحيات اللي في مجموعة.",
+			ar: "يعرض عقد الصلاحيات الموجودة في مجموعة.",
 			en: "List the permission nodes in a group.",
 		},
 		syntax: "/perm group list <group>",
@@ -469,7 +469,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/perm test",
 		summary: {
-			ar: "يختبر صلاحيات ويقول لك النتيجة.",
+			ar: "يختبر عقد الصلاحيات ويعرض النتيجة.",
 			en: "Test permission nodes and print the result.",
 		},
 		syntax: "/perm test <nodes>",
@@ -477,15 +477,15 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/plugin list",
 		summary: {
-			ar: "يعرض المودات والإضافات اللي محمّلة الحين.",
+			ar: "يعرض المودات والإضافات المحمّلة حاليًا.",
 			en: "List the plugins loaded right now.",
 		},
 	},
 	{
 		name: "/plugin reload",
 		summary: {
-			ar: "يعيد تحميل مود وهو شغّال. أضمن لك تعيد تشغيل السيرفر.",
-			en: "Reload a plugin in place — a full restart is safer.",
+			ar: "يعيد تحميل مود وهو شغّال، والريستارت الكامل أكثر أمانًا.",
+			en: "Reload a plugin in place. A full restart is safer.",
 		},
 		syntax: "/plugin reload <name>",
 		danger: true,
@@ -493,7 +493,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/plugin unload",
 		summary: {
-			ar: "يطفّي مود وهو شغّال بدون ما توقف السيرفر.",
+			ar: "يوقف مودًا شغّالًا دون إيقاف السيرفر.",
 			en: "Unload a plugin without stopping the server.",
 		},
 		syntax: "/plugin unload <name>",
@@ -502,7 +502,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/plugin load",
 		summary: {
-			ar: "يحمّل مود جديد وهو شغّال بدون ما توقف السيرفر.",
+			ar: "يحمّل مودًا جديدًا دون إيقاف السيرفر.",
 			en: "Load a new plugin without stopping the server.",
 		},
 		syntax: "/plugin load <name>",
@@ -525,14 +525,14 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/auth select",
 		summary: {
-			ar: "يختار حساب تسجيل الدخول اللي يستخدمه سيرفرك.",
+			ar: "يختار حساب تسجيل الدخول الذي يستخدمه سيرفرك.",
 			en: "Select which signed-in account your server uses.",
 		},
 	},
 	{
 		name: "/auth login device",
 		summary: {
-			ar: "يبدأ تسجيل الدخول ويطبع رمز ورابط التأكيد.",
+			ar: "يبدأ تسجيل الدخول ويُظهر رمز التأكيد ورابطه.",
 			en: "Start the device login and print the code and verification link.",
 		},
 	},
@@ -546,21 +546,21 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/auth persistence Encrypted",
 		summary: {
-			ar: "يحفظ بيانات الدخول مشفّرة عشان ما تروح مع إعادة التشغيل.",
+			ar: "يحفظ بيانات الدخول مشفّرة لكي تبقى بعد الريستارت.",
 			en: "Store the sign-in encrypted so it survives a restart.",
 		},
 	},
 	{
 		name: "/auth cancel",
 		summary: {
-			ar: "يلغي عملية تسجيل دخول شغّالة.",
+			ar: "يلغي عملية تسجيل دخول جارية.",
 			en: "Cancel a login that is still waiting.",
 		},
 	},
 	{
 		name: "/auth logout",
 		summary: {
-			ar: "يمسح تسجيل دخول سيرفرك.",
+			ar: "يحذف تسجيل دخول سيرفرك.",
 			en: "Clear the server's sign-in.",
 		},
 		danger: true,
@@ -568,29 +568,29 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/update status",
 		summary: {
-			ar: "يعرض نسخة سيرفرك وحالة التحديث.",
+			ar: "يعرض إصدار سيرفرك وحالة التحديث.",
 			en: "Show the server version and the update state.",
 		},
 	},
 	{
 		name: "/update check",
 		summary: {
-			ar: "يسأل هايتيل إذا فيه نسخة جديدة.",
+			ar: "يتحقق من هايتيل هل يتوفر إصدار جديد.",
 			en: "Ask Hytale whether a newer version shipped.",
 		},
 	},
 	{
 		name: "/update download",
 		summary: {
-			ar: "ينزّل النسخة الجديدة ويجهزها للتركيب، و`--force` ينزّلها من جديد.",
-			en: "Download the new version and stage it — `--force` fetches it again.",
+			ar: "ينزّل الإصدار الجديد ويجهّزه للتثبيت، و`--force` ينزّله من جديد.",
+			en: "Download the new version and stage it. `--force` fetches it again.",
 		},
 		syntax: "/update download [--force]",
 	},
 	{
 		name: "/update apply --confirm",
 		summary: {
-			ar: "يركّب النسخة المجهّزة ويعيد تشغيل السيرفر.",
+			ar: "يثبّت الإصدار المجهّز وينفّذ ريستارت للسيرفر.",
 			en: "Apply the staged version and restart the server.",
 		},
 		danger: true,
@@ -598,14 +598,14 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/update cancel",
 		summary: {
-			ar: "يلغي تنزيل أو تركيب شغّال.",
+			ar: "يلغي تنزيلًا أو تثبيتًا جاريًا.",
 			en: "Cancel a running download or apply.",
 		},
 	},
 	{
 		name: "/update patchline",
 		summary: {
-			ar: "يعرض أو يغيّر قناة التحديثات اللي يتابعها سيرفرك.",
+			ar: "يعرض قناة التحديثات التي يتابعها سيرفرك أو يغيّرها.",
 			en: "Show or set the update channel your server follows.",
 		},
 		syntax: "/update patchline [name]",
@@ -613,7 +613,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/update setup",
 		summary: {
-			ar: "يطلّع ملفات التشغيل من جديد إذا راحت أو تخربطت.",
+			ar: "يعيد إنشاء ملفات التشغيل إذا فُقدت أو تلفت.",
 			en: "Write the start scripts back out if they went missing.",
 		},
 		syntax: "/update setup [--force]",
@@ -629,14 +629,14 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/discovery unlink",
 		summary: {
-			ar: "يشيل سيرفرك من قائمة السيرفرات العامة.",
+			ar: "يزيل سيرفرك من قائمة السيرفرات العامة.",
 			en: "Take your server off the public discovery listing.",
 		},
 	},
 	{
 		name: "/stop",
 		summary: {
-			ar: "يوقف السيرفر بشكل سليم.",
+			ar: "يوقف السيرفر بأمان.",
 			en: "Shut the server down cleanly.",
 		},
 		danger: true,

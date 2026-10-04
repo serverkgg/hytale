@@ -24,7 +24,7 @@ const WHITELIST_OFF: Bridge.Text = {
 
 const allowed = (username: string): Bridge.Text => {
 	return {
-		ar: `تمت إضافة ${username} للقائمة البيضاء`,
+		ar: `تمت إضافة ${username} إلى القائمة البيضاء`,
 		en: `Added ${username} to the whitelist`,
 	};
 };
@@ -38,7 +38,7 @@ const disallowed = (username: string): Bridge.Text => {
 
 const announced = (excerpt: string): Bridge.Text => {
 	return {
-		ar: `تم إرسال إعلان للاعبين: «${excerpt}»`,
+		ar: `تم إرسال إعلان إلى اللاعبين: «${excerpt}»`,
 		en: `Sent an announcement to players: "${excerpt}"`,
 	};
 };

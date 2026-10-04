@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import {
 	CHAT,
 	createPlayerIds,
@@ -15,7 +15,7 @@ import {
 const ESCAPE = String.fromCodePoint(0x1b);
 
 describe("parseWho", () => {
-	test("reads the one player off the world line /who really prints", () => {
+	it("reads the one player off the world line /who really prints", () => {
 		expect(
 			parseWho([
 				"default (1): : Meslzy (Meslzy)",
@@ -29,7 +29,7 @@ describe("parseWho", () => {
 		]);
 	});
 
-	test("never turns the world and its count into a player", () => {
+	it("never turns the world and its count into a player", () => {
 		expect(
 			parseWho([
 				"default (1): : Meslzy (Meslzy)",
@@ -37,7 +37,7 @@ describe("parseWho", () => {
 		).not.toContain("1");
 	});
 
-	test("answers an empty roster on the world line /who prints when nobody is on", () => {
+	it("answers an empty roster on the world line /who prints when nobody is on", () => {
 		expect(
 			parseWho([
 				"default (0): : (empty)",
@@ -45,7 +45,7 @@ describe("parseWho", () => {
 		).toEqual([]);
 	});
 
-	test("reads every player off a world line that carries several", () => {
+	it("reads every player off a world line that carries several", () => {
 		expect(
 			parseWho([
 				"default (2): : Meslzy (Meslzy), SalSevenSix (SalSevenSix)",
@@ -64,7 +64,7 @@ describe("parseWho", () => {
 		]);
 	});
 
-	test("reads a display name that differs from the account name", () => {
+	it("reads a display name that differs from the account name", () => {
 		expect(
 			parseWho([
 				"default (1): : Mohammed (meslzy)",
@@ -78,7 +78,7 @@ describe("parseWho", () => {
 		]);
 	});
 
-	test("gathers the players of every world into one roster", () => {
+	it("gathers the players of every world into one roster", () => {
 		expect(
 			parseWho([
 				"default (1): : Meslzy (Meslzy)",
@@ -91,7 +91,7 @@ describe("parseWho", () => {
 		]);
 	});
 
-	test("still reads the one player per line shape", () => {
+	it("still reads the one player per line shape", () => {
 		expect(
 			parseWho([
 				"SalSevenSix (SalSevenSix)",
@@ -111,7 +111,7 @@ describe("parseWho", () => {
 		]);
 	});
 
-	test("skips the lines around the roster", () => {
+	it("skips the lines around the roster", () => {
 		expect(
 			parseWho([
 				"Players online:",
@@ -127,7 +127,7 @@ describe("parseWho", () => {
 		]);
 	});
 
-	test("keeps one row per account when a player shows up twice", () => {
+	it("keeps one row per account when a player shows up twice", () => {
 		expect(
 			parseWho([
 				"default (1): : Meslzy (Meslzy)",
@@ -136,7 +136,7 @@ describe("parseWho", () => {
 		).toHaveLength(1);
 	});
 
-	test("answers an empty roster when nobody is on", () => {
+	it("answers an empty roster when nobody is on", () => {
 		expect(parseWho([])).toEqual([]);
 		expect(
 			parseWho([
@@ -147,7 +147,7 @@ describe("parseWho", () => {
 });
 
 describe("log patterns", () => {
-	test("PLAYER_JOINED reads the name and the uuid off the line 0.6.3 really prints", () => {
+	it("PLAYER_JOINED reads the name and the uuid off the line 0.6.3 really prints", () => {
 		const groups =
 			"[2026/09/04 02:55:09   INFO]                 [World|default] Player 'Meslzy' joined world 'default' at location (-3.705E+2  1.200E+2  3.555E+2) (beda09a2-23a1-4949-97b4-ad93ed3c78d1)".match(
 				PLAYER_JOINED,
@@ -157,7 +157,7 @@ describe("log patterns", () => {
 		expect(groups?.playerId).toBe("beda09a2-23a1-4949-97b4-ad93ed3c78d1");
 	});
 
-	test("PLAYER_JOINED reads the same line when the console wraps it in colour", () => {
+	it("PLAYER_JOINED reads the same line when the console wraps it in colour", () => {
 		const groups =
 			`${ESCAPE}[m[2026/09/04 02:55:09   INFO]                 [${ESCAPE}[0;32mWorld|default] Player 'Meslzy' joined world 'default' at location (-3.705E+2  1.200E+2  3.555E+2) (beda09a2-23a1-4949-97b4-ad93ed3c78d1)${ESCAPE}[m`.match(
 				PLAYER_JOINED,
@@ -167,7 +167,7 @@ describe("log patterns", () => {
 		expect(groups?.playerId).toBe("beda09a2-23a1-4949-97b4-ad93ed3c78d1");
 	});
 
-	test("PLAYER_JOINED reads the older location shape", () => {
+	it("PLAYER_JOINED reads the older location shape", () => {
 		const groups =
 			"[2026/02/22 15:51:38   INFO]   [World|default] Player 'SalSevenSix' joined world 'default' at location Vector3d{x=-926.6, y=133.4, z=730.1} (dd8d4c6b-64e9-4f49-aa45-387f7450f5e2)".match(
 				PLAYER_JOINED,
@@ -177,7 +177,7 @@ describe("log patterns", () => {
 		expect(groups?.playerId).toBe("dd8d4c6b-64e9-4f49-aa45-387f7450f5e2");
 	});
 
-	test("PLAYER_JOINED ignores the universe line the game prints for the same join, so it is not counted twice", () => {
+	it("PLAYER_JOINED ignores the universe line the game prints for the same join, so it is not counted twice", () => {
 		expect(
 			PLAYER_JOINED.test(
 				"[2026/09/04 02:55:09   INFO]                 [Universe|P] Adding player 'Meslzy (beda09a2-23a1-4949-97b4-ad93ed3c78d1)",
@@ -191,7 +191,7 @@ describe("log patterns", () => {
 		).toBe(false);
 	});
 
-	test("PLAYER_LEFT reads the name and the uuid off the closed quote shape", () => {
+	it("PLAYER_LEFT reads the name and the uuid off the closed quote shape", () => {
 		const groups =
 			"[2026/02/06 15:22:45   INFO]   [Universe|P] Removing player 'SalSevenSix' (dd8d4c6b-64e9-4f49-aa45-387f7450f5e2)".match(
 				PLAYER_LEFT,
@@ -201,7 +201,7 @@ describe("log patterns", () => {
 		expect(groups?.playerId).toBe("dd8d4c6b-64e9-4f49-aa45-387f7450f5e2");
 	});
 
-	test("PLAYER_LEFT reads the assumed unbalanced quote shape, the one the game uses when it adds a player", () => {
+	it("PLAYER_LEFT reads the assumed unbalanced quote shape, the one the game uses when it adds a player", () => {
 		const groups =
 			"[2026/09/04 02:56:41   INFO]                 [Universe|P] Removing player 'Meslzy (beda09a2-23a1-4949-97b4-ad93ed3c78d1)".match(
 				PLAYER_LEFT,
@@ -211,7 +211,7 @@ describe("log patterns", () => {
 		expect(groups?.playerId).toBe("beda09a2-23a1-4949-97b4-ad93ed3c78d1");
 	});
 
-	test("PLAYER_LEFT reads the assumed coloured line", () => {
+	it("PLAYER_LEFT reads the assumed coloured line", () => {
 		const groups =
 			`${ESCAPE}[m[2026/09/04 02:56:41   INFO]                 [${ESCAPE}[0;32mUniverse|P] Removing player 'SalSevenSix' (dd8d4c6b-64e9-4f49-aa45-387f7450f5e2)${ESCAPE}[m`.match(
 				PLAYER_LEFT,
@@ -221,7 +221,7 @@ describe("log patterns", () => {
 		expect(groups?.playerId).toBe("dd8d4c6b-64e9-4f49-aa45-387f7450f5e2");
 	});
 
-	test("PLAYER_DIED reads the name and where it happened", () => {
+	it("PLAYER_DIED reads the name and where it happened", () => {
 		const groups =
 			"[2026/02/07 07:21:09   INFO]   [Gravestones|P] [Gravestones] Created for SalSevenSix at (1322, 119, -83)".match(
 				PLAYER_DIED,
@@ -231,7 +231,7 @@ describe("log patterns", () => {
 		expect(groups?.location).toBe("1322, 119, -83");
 	});
 
-	test("PLAYER_DIED reads the assumed coloured line", () => {
+	it("PLAYER_DIED reads the assumed coloured line", () => {
 		const groups =
 			`${ESCAPE}[m[2026/02/07 07:21:09   INFO]                 [${ESCAPE}[0;32mGravestones|P] [Gravestones] Created for SalSevenSix at (1322, 119, -83)${ESCAPE}[m`.match(
 				PLAYER_DIED,
@@ -241,14 +241,14 @@ describe("log patterns", () => {
 		expect(groups?.location).toBe("1322, 119, -83");
 	});
 
-	test("CHAT reads who said what", () => {
+	it("CHAT reads who said what", () => {
 		const groups = "[2026/01/24 08:55:01   INFO]   [Hytale] SalSevenSix: Hello everyone".match(CHAT)?.groups;
 
 		expect(groups?.player).toBe("SalSevenSix");
 		expect(groups?.message).toBe("Hello everyone");
 	});
 
-	test("a booting line is not a player event", () => {
+	it("a booting line is not a player event", () => {
 		const line = "[2026/01/24 12:51:45   INFO]   [HytaleServer] Booting up HytaleServer - Version: x, Revision: y";
 
 		expect(PLAYER_JOINED.test(line)).toBe(false);
@@ -265,7 +265,7 @@ const MESLZY_ID = "beda09a2-23a1-4949-97b4-ad93ed3c78d1";
 const SAL_ID = "dd8d4c6b-64e9-4f49-aa45-387f7450f5e2";
 
 describe("createPlayerIds", () => {
-	test("learns the uuid behind a display name off the join line", () => {
+	it("learns the uuid behind a display name off the join line", () => {
 		const ids = createPlayerIds();
 
 		ids.learn([
@@ -275,7 +275,7 @@ describe("createPlayerIds", () => {
 		expect(ids.idOf("Mohammed")).toBe(MESLZY_ID);
 	});
 
-	test("learns the same line when the console wraps it in colour", () => {
+	it("learns the same line when the console wraps it in colour", () => {
 		const ids = createPlayerIds();
 
 		ids.learn([
@@ -285,7 +285,7 @@ describe("createPlayerIds", () => {
 		expect(ids.idOf("Meslzy")).toBe(MESLZY_ID);
 	});
 
-	test("learns nothing from a line that is not a join", () => {
+	it("learns nothing from a line that is not a join", () => {
 		const ids = createPlayerIds();
 
 		ids.learn([
@@ -296,7 +296,7 @@ describe("createPlayerIds", () => {
 		expect(ids.idOf("SalSevenSix")).toBeNull();
 	});
 
-	test("takes the newest uuid when the same display name joins again", () => {
+	it("takes the newest uuid when the same display name joins again", () => {
 		const ids = createPlayerIds();
 
 		ids.learn([
@@ -307,7 +307,7 @@ describe("createPlayerIds", () => {
 		expect(ids.idOf("Meslzy")).toBe(MESLZY_ID);
 	});
 
-	test("keeps a player it learned even after that player left, because the join line scrolls out of the tail", () => {
+	it("keeps a player it learned even after that player left, because the join line scrolls out of the tail", () => {
 		const ids = createPlayerIds();
 
 		ids.learn([
@@ -320,7 +320,7 @@ describe("createPlayerIds", () => {
 		expect(ids.idOf("Meslzy")).toBe(MESLZY_ID);
 	});
 
-	test("drops the oldest name once it has learned more than it keeps", () => {
+	it("drops the oldest name once it has learned more than it keeps", () => {
 		const ids = createPlayerIds();
 
 		ids.learn(
@@ -335,7 +335,7 @@ describe("createPlayerIds", () => {
 });
 
 describe("identifyRoster", () => {
-	test("keys a row by the uuid when the join line taught it one", () => {
+	it("keys a row by the uuid when the join line taught it one", () => {
 		const ids = createPlayerIds();
 
 		ids.learn([
@@ -358,7 +358,7 @@ describe("identifyRoster", () => {
 		]);
 	});
 
-	test("falls back to the account name for a player who joined before the driver started", () => {
+	it("falls back to the account name for a player who joined before the driver started", () => {
 		expect(
 			identifyRoster(
 				parseWho([
@@ -375,7 +375,7 @@ describe("identifyRoster", () => {
 		]);
 	});
 
-	test("identifies only the players it learned, leaving the rest on their account name", () => {
+	it("identifies only the players it learned, leaving the rest on their account name", () => {
 		const ids = createPlayerIds();
 
 		ids.learn([
@@ -397,7 +397,7 @@ describe("identifyRoster", () => {
 });
 
 describe("reading a roster row back after the panel hands it to an action", () => {
-	test("takes the account name kick and ban really need", () => {
+	it("takes the account name kick and ban really need", () => {
 		expect(
 			rosterUsernameOf({
 				id: MESLZY_ID,
@@ -407,7 +407,7 @@ describe("reading a roster row back after the panel hands it to an action", () =
 		).toBe("meslzy");
 	});
 
-	test("falls back to the row id when the row carries no account name", () => {
+	it("falls back to the row id when the row carries no account name", () => {
 		expect(
 			rosterUsernameOf({
 				id: "meslzy",
@@ -416,7 +416,7 @@ describe("reading a roster row back after the panel hands it to an action", () =
 		).toBe("meslzy");
 	});
 
-	test("carries the name, the uuid and the account into the presence payload", () => {
+	it("carries the name, the uuid and the account into the presence payload", () => {
 		expect(
 			rosterPresenceOf({
 				id: MESLZY_ID,
@@ -430,7 +430,7 @@ describe("reading a roster row back after the panel hands it to an action", () =
 		});
 	});
 
-	test("names the player by the row id when the row carries no name", () => {
+	it("names the player by the row id when the row carries no name", () => {
 		expect(
 			rosterPresenceOf({
 				id: MESLZY_ID,

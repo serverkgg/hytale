@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import type { Bridge } from "@serverkgg/bridge";
 import { PAYLOAD_FILES, SAVE_WORLD_COMMAND, SAVE_WORLD_LINE } from "../shared";
 import { backup } from "./backup";
@@ -73,17 +73,17 @@ const quiesce = async (harnessed: ReturnType<typeof harness>) => {
 };
 
 describe("reading the line hytale prints when it finishes saving", () => {
-	test("matches the reply a real console prints for the save command", () => {
+	it("matches the reply a real console prints for the save command", () => {
 		expect(SAVE_WORLD_LINE.test(SAVE_REPLY)).toBe(true);
 	});
 
-	test("ignores the line that only says the save began", () => {
+	it("ignores the line that only says the save began", () => {
 		expect(SAVE_WORLD_LINE.test("Beginning to save all worlds")).toBe(false);
 	});
 });
 
 describe("holding the world still before the backup", () => {
-	test("asks every world to write itself, with the confirmation the command demands", async () => {
+	it("asks every world to write itself, with the confirmation the command demands", async () => {
 		const run = await quiesce(harness());
 
 		expect(run.sent).toEqual([
@@ -91,7 +91,7 @@ describe("holding the world still before the backup", () => {
 		]);
 	});
 
-	test("waits on the save line the console answers with", async () => {
+	it("waits on the save line the console answers with", async () => {
 		const run = await quiesce(harness());
 
 		expect(run.watched()).toBe(SAVE_WORLD_LINE);
@@ -101,7 +101,7 @@ describe("holding the world still before the backup", () => {
 		expect(run.warnings).toEqual([]);
 	});
 
-	test("starts watching before it sends the command, so a save that lands at once is not missed", async () => {
+	it("starts watching before it sends the command, so a save that lands at once is not missed", async () => {
 		const run = await quiesce(harness());
 
 		expect(run.order).toEqual([
@@ -110,7 +110,7 @@ describe("holding the world still before the backup", () => {
 		]);
 	});
 
-	test("raises when the save never reports, so the point is not labelled clean", async () => {
+	it("raises when the save never reports, so the point is not labelled clean", async () => {
 		const run = harness({
 			answers: false,
 		});
@@ -121,7 +121,7 @@ describe("holding the world still before the backup", () => {
 		expect(run.notes).toEqual([]);
 	});
 
-	test("sends nothing to a server that is not running", async () => {
+	it("sends nothing to a server that is not running", async () => {
 		const run = await quiesce(
 			harness({
 				running: false,
@@ -132,7 +132,7 @@ describe("holding the world still before the backup", () => {
 		expect(run.warnings).toEqual([]);
 	});
 
-	test("sends nothing while the bootstrap is still fetching the payload, where the save command does not exist yet", async () => {
+	it("sends nothing while the bootstrap is still fetching the payload, where the save command does not exist yet", async () => {
 		const run = await quiesce(
 			harness({
 				present: [],

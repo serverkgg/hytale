@@ -24,7 +24,7 @@ const SIGNED_IN_BADGE: Bridge.DetailBadge = {
 const SIGNED_OUT_BADGE: Bridge.DetailBadge = {
 	tone: BridgeDetailTone.Warning,
 	label: {
-		ar: "ما سجّل دخول",
+		ar: "غير مسجّل الدخول",
 		en: "Not signed in",
 	},
 };
@@ -32,15 +32,15 @@ const SIGNED_OUT_BADGE: Bridge.DetailBadge = {
 const UNKNOWN_BADGE: Bridge.DetailBadge = {
 	tone: BridgeDetailTone.Neutral,
 	label: {
-		ar: "ما قدرنا نقرأ الحالة",
-		en: "Status unreadable",
+		ar: "تعذّرت قراءة الحالة",
+		en: "Couldn't read status",
 	},
 };
 
 const SETUP_BADGE: Bridge.DetailBadge = {
 	tone: BridgeDetailTone.Neutral,
 	label: {
-		ar: "مرحلة التركيب",
+		ar: "مرحلة التجهيز",
 		en: "Setup stage",
 	},
 };
@@ -48,7 +48,7 @@ const SETUP_BADGE: Bridge.DetailBadge = {
 const DOWNLOADING_BADGE: Bridge.DetailBadge = {
 	tone: BridgeDetailTone.Neutral,
 	label: {
-		ar: "ينزّل ملفات اللعبة",
+		ar: "جاري تنزيل ملفات اللعبة",
 		en: "Downloading the game",
 	},
 };
@@ -56,7 +56,7 @@ const DOWNLOADING_BADGE: Bridge.DetailBadge = {
 const READY_BADGE: Bridge.DetailBadge = {
 	tone: BridgeDetailTone.Success,
 	label: {
-		ar: "السيرفر مركّب",
+		ar: "السيرفر مثبّت",
 		en: "Server installed",
 	},
 };
@@ -67,22 +67,22 @@ const SUBTITLE_SIGNED_IN: Bridge.Text = {
 };
 
 const SUBTITLE_SIGNED_OUT: Bridge.Text = {
-	ar: "يحتاج تسجيل دخول",
+	ar: "يلزم تسجيل الدخول",
 	en: "Needs a sign-in",
 };
 
 const NEXT_SETUP: Bridge.Text = {
-	ar: "سيرفرك لسه يجهّز. صفحة التركيب تمشيك خطوة خطوة وتطلع لك رمز الدخول فيها.",
+	ar: "جاري تجهيز سيرفرك. ترشدك صفحة التجهيز خطوة بخطوة، ويظهر فيها رمز الدخول.",
 	en: "Your server is still setting up. The setup page walks you through it and shows your sign-in code.",
 };
 
 const NEXT_DOWNLOADING: Bridge.Text = {
-	ar: "سيرفرك سجّل دخوله وبدأ ينزّل ملفات اللعبة. العملية تاخذ شوي، تابعها من صفحة التركيب، وبعدها يشتغل لحاله.",
-	en: "Your server signed in and started downloading the game files. It takes a while — follow it on the setup page, then it starts on its own.",
+	ar: "تم تسجيل دخول سيرفرك وبدأ تنزيل ملفات اللعبة. تستغرق العملية بعض الوقت، فتابعها من صفحة التجهيز، ثم يشتغل السيرفر تلقائيًا.",
+	en: "Your server signed in and started downloading the game files. It takes a while. Follow it on the setup page, and then the server starts on its own.",
 };
 
 const NEXT_SIGNED_OUT: Bridge.Text = {
-	ar: "سيرفرك مركّب بس مسجّل خروج، وما يستقبل لاعبين. اضغط «بدّل الحساب» وبيطلع لك رمز دخول جديد في صفحة التركيب.",
+	ar: "سيرفرك مثبّت لكنه غير مسجّل الدخول، لذلك لا يستقبل لاعبين. اضغط «بدّل الحساب» ليظهر رمز دخول جديد في صفحة التجهيز.",
 	en: "Your server is installed but signed out, so it takes no players. Press Switch account and a new sign-in code appears on the setup page.",
 };
 
@@ -92,7 +92,7 @@ const SWITCHED_ACTIVITY: Bridge.Text = {
 };
 
 const SIGNED_OUT_ACTIVITY: Bridge.Text = {
-	ar: "تم تسجيل خروج السيرفر من حساب هايتيل، وما يستقبل لاعبين لين يسجّل دخول",
+	ar: "تم تسجيل خروج السيرفر من حساب هايتيل، ولن يستقبل لاعبين حتى يسجّل الدخول من جديد",
 	en: "Signed the server out of its Hytale account, it takes no players until it signs in again",
 };
 

@@ -170,7 +170,7 @@ const modCurrent = (entry: ModEntry): Bridge.Activity => {
 	return {
 		name: BridgeEventName.ModInstalled,
 		text: {
-			ar: `مود ${entry.title} (${entry.version}) مثبّت من قبل وعلى آخر نسخة`,
+			ar: `مود ${entry.title} (${entry.version}) مثبّت مسبقًا وعلى آخر إصدار`,
 			en: `Mod ${entry.title} (${entry.version}) was already installed and up to date`,
 		},
 		subject: entry.title,
@@ -221,8 +221,8 @@ const titleOf = (sidecar: ModsSidecar, filenames: string[], fallback: string) =>
 };
 
 const NOT_READY_NOTE: Bridge.Text = {
-	ar: "كتالوج المودات مقفل الحين. لازم الأدمن يضبط مفتاح CurseForge.",
-	en: "The mod catalog is off right now. An administrator needs to set the CurseForge key.",
+	ar: "كتالوج المودات غير متاح حاليًا، ويلزم أن يضبط فريق سيرفرك مفتاح CurseForge.",
+	en: "The mod catalog is off right now. The Serverk team needs to set the CurseForge key.",
 };
 
 const providersOf = (catalog: CurseforgeCatalog): Bridge.CatalogProvider[] => {
@@ -232,7 +232,7 @@ const providersOf = (catalog: CurseforgeCatalog): Bridge.CatalogProvider[] => {
 		{
 			id: CURSEFORGE_PROVIDER,
 			label: {
-				ar: "كيرس فورج",
+				ar: "CurseForge",
 				en: "CurseForge",
 			},
 			ready,
@@ -322,8 +322,8 @@ const modTarget = async (context: Bridge.Context): Promise<ModTarget> => {
 const requireServer = (target: ModTarget) => {
 	if (target.stage !== HytaleStage.Server) {
 		throw new BridgeUserError({
-			ar: "لازم تخلّص إعداد سيرفرك أول — سجّل دخوله ونزّل اللعبة، وبعدها تقدر تركّب مودات.",
-			en: "Finish setting your server up first — sign it in and download the game, then you can install mods.",
+			ar: "أكمل تجهيز سيرفرك أولًا بتسجيل دخوله وتنزيل اللعبة، ثم ثبّت المودات.",
+			en: "Finish setting your server up first. Sign it in and download the game, then you can install mods.",
 		});
 	}
 };
@@ -385,8 +385,8 @@ const trackedEntry = (sidecar: ModsSidecar, id: string): ModEntry | null => {
 
 const unknownRelease = (title: string) => {
 	return new BridgeUserError({
-		ar: `النسخة اللي اخترتها مو من نسخ "${title}" اللي تناسب سيرفرك. حدّث القائمة واختر نسخة ثانية.`,
-		en: `The version you picked is not one of the "${title}" builds that fit your server. Refresh the list and pick another.`,
+		ar: `الإصدار المحدد ليس من إصدارات «${title}» المناسبة لسيرفرك. حدّث القائمة واختر إصدارًا آخر.`,
+		en: `The version you picked isn't one of the "${title}" builds that fit your server. Refresh the list and pick another.`,
 	});
 };
 
@@ -585,8 +585,8 @@ const removeEntry = async (context: Bridge.Context, id: string) => {
 
 	if (!isModFile(name)) {
 		throw new BridgeUserError({
-			ar: `"${id}" مو مركّب.`,
-			en: `"${id}" is not installed.`,
+			ar: `«${id}» غير مثبّت.`,
+			en: `"${id}" isn't installed.`,
 		});
 	}
 
@@ -720,7 +720,7 @@ export const mods: Bridge.Catalog = {
 			confirm: BridgeConfirm.Normal,
 			lines: [
 				{
-					ar: "التغيير ما يبان إلا بعد ما تعيد تشغيل سيرفرك.",
+					ar: "يظهر التغيير بعد ريستارت سيرفرك.",
 					en: "The change only shows after you restart your server.",
 				},
 				{

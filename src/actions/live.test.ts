@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import type { Bridge } from "@serverkgg/bridge";
 import { BRIDGE_ACTIVITY_EXCERPT_LENGTH_LIMIT, BridgeEventName } from "@serverkgg/bridge/protocol";
 import { live, WHITELIST_LIST } from "./live";
@@ -41,7 +41,7 @@ const invoke = async (action: string, args: Bridge.Values) => {
 };
 
 describe("telling the owner what a live action did", () => {
-	test("reports an announcement as an excerpt of the message", async () => {
+	it("reports an announcement as an excerpt of the message", async () => {
 		const message = "The server restarts in ten minutes for the weekend event, save your builds and log out now please";
 		const { reported } = await invoke("announce", {
 			message,
@@ -55,7 +55,7 @@ describe("telling the owner what a live action did", () => {
 		expect(reported.at(0)?.text.en).toStartWith('Sent an announcement to players: "The server restarts');
 	});
 
-	test("reports the whitelist switch with its new value", async () => {
+	it("reports the whitelist switch with its new value", async () => {
 		const on = await invoke("whitelist", {
 			enabled: true,
 		});
@@ -80,7 +80,7 @@ describe("telling the owner what a live action did", () => {
 		expect(off.reported.at(0)?.text.en).toBe("Disabled the whitelist");
 	});
 
-	test("names the player added to and removed from the whitelist", async () => {
+	it("names the player added to and removed from the whitelist", async () => {
 		const allowed = await invoke("allow", {
 			username: " meslzy ",
 		});
@@ -92,7 +92,7 @@ describe("telling the owner what a live action did", () => {
 			{
 				name: BridgeEventName.AccessGranted,
 				text: {
-					ar: "تمت إضافة meslzy للقائمة البيضاء",
+					ar: "تمت إضافة meslzy إلى القائمة البيضاء",
 					en: "Added meslzy to the whitelist",
 				},
 				subject: "meslzy",
@@ -106,7 +106,7 @@ describe("telling the owner what a live action did", () => {
 		expect(disallowed.reported.at(0)?.details?.list).toBe(WHITELIST_LIST);
 	});
 
-	test("reports nothing when the player name is refused", async () => {
+	it("reports nothing when the player name is refused", async () => {
 		const { context, sent, reported } = liveHarness();
 
 		await expect(
