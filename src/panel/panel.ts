@@ -46,7 +46,7 @@ const accountTab: Bridge.Tab = {
 						ar: "سجّل الخروج",
 						en: "Sign out",
 					},
-					confirm: BridgeConfirm.Strong,
+					confirm: BridgeConfirm.Normal,
 					confirmText: {
 						ar: "نحذف تسجيل الدخول من سيرفرك، ولن يستقبل لاعبين حتى تسجّل الدخول من جديد.",
 						en: "We clear the sign-in from your server, and it can't accept players until you sign in again.",
@@ -200,7 +200,7 @@ const playersTab: Bridge.Tab = {
 						ar: "احظر",
 						en: "Ban",
 					},
-					confirm: BridgeConfirm.Strong,
+					confirm: BridgeConfirm.Normal,
 				},
 			],
 			empty: {
