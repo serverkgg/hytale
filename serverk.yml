@@ -100,22 +100,8 @@ presence:
 
 files:
   protected:
-    - Assets.zip
-    - start.sh
-    - start.bat
-    - jvm.options
-    - HytaleServer.jar
     - .serverk-install.json
-    - auth.enc
-    - auth.key
-    - Server/HytaleServer.jar
-    - Server/HytaleServer.aot
-    - Server/Licenses/**
-    - Server/auth.enc
-    - Server/auth.key
     - Server/mods/.serverk-mods.json
-    - earlyplugins/**
-    - updater/**
   notable:
     - match: Server/config.json
       label:
