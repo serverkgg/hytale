@@ -18,7 +18,7 @@
 
 ## ما الذي يتغير وما الذي يبقى
 
-يتغير: `Server/HytaleServer.jar` و `Assets.zip` وملفات التشغيل. هذه الملفات محمية في مدير الملفات لكي لا تُحذف بالخطأ.
+يتغير: `Server/HytaleServer.jar` و `Assets.zip` وملفات التشغيل. وإذا حُذف `Server/HytaleServer.jar` أو `Assets.zip` أو `start.sh`، ينزّل سيرفرك ملفات اللعبة من جديد في التشغيل التالي.
 
 يبقى كما هو: مابك تحت `Server/universe/`، وإعداداتك في `Server/config.json`، والقائمة البيضاء، والمحظورون، والمودات.
 

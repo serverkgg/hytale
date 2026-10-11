@@ -18,7 +18,7 @@ Most of the time that means you do nothing at all: the update arrives on its own
 
 ## What changes and what stays
 
-Changes: `Server/HytaleServer.jar`, `Assets.zip` and the start scripts. They're protected in the file manager so they can't be deleted by accident.
+Changes: `Server/HytaleServer.jar`, `Assets.zip` and the start scripts. If `Server/HytaleServer.jar`, `Assets.zip` or `start.sh` is deleted, your server downloads the game files again on its next start.
 
 Stays exactly as it was: your world under `Server/universe/`, your settings in `Server/config.json`, the whitelist, the bans and your mods.
 

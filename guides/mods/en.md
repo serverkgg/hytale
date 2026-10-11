@@ -43,7 +43,7 @@ That's why we record the version each mod was built for and flag it in the Mods 
 
 ## Early plugins aren't supported
 
-There is a category called early plugins that runs outside the normal plugin system and rewrites the server from the inside. Hytale itself calls it unsupported and unstable, and it needs a special launch flag. We never pass that flag, and the `earlyplugins` folder is locked here. Put your mods in `Server/mods` instead.
+There is a category called early plugins that runs outside the normal plugin system and rewrites the server from the inside. Hytale itself calls it unsupported and unstable, and it needs a special launch flag. We never pass that flag, so nothing in the `earlyplugins` folder ever loads. Put your mods in `Server/mods` instead.
 
 ## If a mod doesn't load
 
