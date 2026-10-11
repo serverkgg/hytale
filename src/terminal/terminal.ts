@@ -201,7 +201,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/world settings keeploaded set",
 		summary: {
-			ar: "يحدد هل تبقى الماب محمّلة حتى دون وجود لاعبين فيها.",
+			ar: "يحدد هل يبقى الماب محمّلًا حتى دون وجود لاعبين فيه.",
 			en: "Set whether the world stays loaded even with nobody in it.",
 		},
 		syntax: "/world settings keeploaded set <on|off>",
@@ -218,7 +218,7 @@ const commands: Bridge.TerminalCommand[] = [
 	{
 		name: "/world prune",
 		summary: {
-			ar: "يحذف كل المابات الخالية من اللاعبين، باستثناء الماب الأساسية.",
+			ar: "يحذف كل المابات الخالية من اللاعبين، باستثناء الماب الأساسي.",
 			en: "Delete every non-default world nobody is standing in.",
 		},
 		danger: true,
