@@ -1,64 +1,53 @@
+![Hytale](assets/banner.webp)
+
 # هايتيل (Hytale)
 
-حزمة هايتيل على منصة سيرفرك (`serverk.gg`). هذا المستودع فيه كل شيء اللعبة تحتاجه عشان تشتغل على المنصة: ملف التعريف `serverk.yml`، الـ driver اللي يدير السيرفر، صورة الدوكر، والشروحات.
+يضم هذا الريبو كل ما تحتاجه منصة سيرفرك لتشغيل سيرفرات هايتيل. سيرفر هايتيل للمغامرات والبناء والقتال مع أصحابك في ماب مفتوح من المكعبات. مابك محفوظ على سيرفرك وشغّال على مدار 24 ساعة. سجّل دخول السيرفر مرة واحدة بحساب هايتيل الخاص بك، وبعدها يحدّث نفسه تلقائيًا. مابك في هايتيل مع أصحابك، وسيرفرك جاهز خلال دقيقة. صفحة اللعبة: [serverk.gg/games/hytale](https://serverk.gg/games/hytale)
 
-The Hytale game package for the Serverk platform (`serverk.gg`). This repo holds everything the game needs to run on the platform: the `serverk.yml` manifest, the driver that manages the server, the Docker image, and the guides.
+This repository holds everything Serverk needs to run Hytale servers. Hytale dedicated servers for adventure, building and combat with your friends in an open block world. Your world lives on your server and runs around the clock. You sign it in once with your own Hytale account, and it keeps itself updated from then on. Your Hytale world with your friends, with your server ready in a minute. Game page: [serverk.gg/games/hytale](https://serverk.gg/games/hytale)
 
 ## Layout
 
-- `serverk.yml` — the game manifest: metadata, resources, ports, backup rules, guides. It declares no platform secret.
-- `src/` — the bridge driver: install (the Maven bootstrap installer), lifecycle, query, and the panel modules.
-- `image/Dockerfile` — the runtime image: Temurin 25 JRE; the compiled bridge binary is its entrypoint.
-- `assets/` — logo and banner (webp).
-- `guides/` — player guides in Arabic and English.
+- `serverk.yml`: the game manifest with its metadata, resources, ports, backup and reset rules, and the guide list.
+- `serverk.schema.json`: the JSON Schema of `serverk.yml` for the editor, written by `serverk-bridge schema`.
+- `src/`: the driver, built on `@serverkgg/bridge`; `src/driver.ts` exports it and `src/main.ts` serves it.
+- `image/Dockerfile`: the container image, with the compiled bridge as its entrypoint.
+- `assets/`: the logo and the banner the site and the panel show.
+- `guides/<id>/ar.md` and `en.md`: the guide bodies; each guide's title, summary and tags live in `serverk.yml`.
 
-## How a Hytale server comes up
+## Guides
 
-The driver has two stages, decided every launch by whether the official payload (`Server/HytaleServer.jar`, `Assets.zip`, `start.sh`) is on the volume.
-
-1. **Bootstrap.** `install` resolves the newest `Server` release from `https://maven.hytale.com/release/com/hypixel/hytale/Server/maven-metadata.xml`, verifies the published `.sha1`, and downloads `HytaleServer.jar` into the volume root through the agent's artifact cache. It also writes `auth.key`, the per-server passphrase the encrypted credential store derives its key from. `lifecycle` runs the jar as `java -jar HytaleServer.jar --bootstrap`; `--bootstrap` implies `--bare`, so no port is bound, but the server still prints the `Hytale Server Booted!` banner the ready pattern watches for.
-2. **Sign-in.** The driver declares a `setup` module with four steps (`sign-in`, `download`, `name`, `invite`), so the platform lands the customer on the setup page. `lifecycle.onReady` runs the orchestrator in `src/setup/setupFlow.ts`: it re-derives the stage and the auth state, starts a device login by itself, and reports the code, the link and the download progress to the page — the customer presses nothing to get a code. On the `Authentication successful` line the driver issues `/update download`, and the server extracts the full payload into the official layout, migrates `auth.enc`, `auth.key` and `config.json` into `Server/`, and exits. The Account tab is where the account is switched or signed out afterwards.
-3. **Server.** The bridge supervisor relaunches, the driver now sees the payload, writes the driver-owned `Update` and `Backup` blocks into `Server/config.json` plus `jvm.options` (heap, G1, `-XX:AOTCache=HytaleServer.aot`), and runs the official wrapper: `bash start.sh --bind 0.0.0.0:<port> --auth-mode authenticated`. Hytale's own update checker then owns the version: it stages updates, warns players, and applies them on a 15-minute schedule (`AutoApplyMode: Scheduled`) by exiting with code 8, which `start.sh` handles inside the wrapper, so the bridge never sees a crash. Once the updated server reports ready, the driver drops `updater/backup`, the rollback copy `start.sh` leaves behind.
-
-Nothing in this package needs a Serverk-owned Hytale account or a platform secret.
-
-### Sign-in persistence
-
-`/auth persistence Encrypted` stores the OAuth tokens in `auth.enc`, encrypted with a key derived from the first passphrase the server can find: `HYTALE_AUTH_KEY_FILE`, `HYTALE_AUTH_KEY`, the hardware UUID, or a generated `auth.key` beside the store. The image has an empty `/etc/machine-id`, no dbus id, an unreadable `product_uuid` as uid 1000 and no `dmidecode`, so the hardware UUID always fails (a `WARN` with a stack trace at every boot, harmless), and the bridge lifecycle sets no environment for the game. The passphrase is therefore `auth.key`, which the driver generates at install instead of leaving it to the server's first boot; it is protected in the file manager, kept across a reset and archived with the backups. The log line to expect is `Using auto-generated encryption key from auth.key`, never `Cannot derive encryption key`.
-
-### Stopping
-
-`start.sh` runs `java` as a child of `bash` without `exec`, so a signal sent to the wrapper never reaches the server: `SIGTERM` kills `bash` and leaves `java` orphaned. The driver's stop path is therefore the console, `/stop` followed by a wait for `Shutdown completed!`; the supervisor's signal escalation is the fallback and only works once the bridge signals the process group rather than the wrapper pid.
-
-### Ports
-
-The manifest declares one UDP port per server (`5520`–`5569`). A query plugin needs a second one: `Nitrado:Query` binds the game port plus 3 and Physgun's `hytale-sourcequery` the game port plus 1, so either would land on a neighbour's game port today. Shipping one means adding a second manifest port and widening the host range, not reusing this one.
+- [البدء بسيرفرك · Getting started](https://serverk.gg/games/hytale/guides/getting-started)
+- [تحديثات هايتيل · Hytale updates](https://serverk.gg/games/hytale/guides/updates)
+- [مودات هايتيل · Hytale mods](https://serverk.gg/games/hytale/guides/mods)
 
 ## Develop
 
-Everything runs on [Bun](https://bun.sh):
+Everything runs on [Bun](https://bun.sh).
 
-```sh
-bun install
-bun run check
-bun run tsc
-bun run test
-bun run validate
-bun run compile
-```
+- `bun install`: installs the dependencies, points Git at the hooks in `.githooks/` and writes `.claude/rules/package.md` from the bridge.
+- `bun run check`: checks lint and formatting with Biome; `bun run fix` applies the fixes.
+- `bun run tsc`: type-checks the code.
+- `bun run test`: runs the tests.
+- `bun run validate`: runs the checks the platform runs at publish, and fails while this README is out of date.
+- `bun run compile`: builds `dist/bridge`, the linux/amd64 binary the image starts.
 
-`validate` checks the manifest, assets, and driver wiring with the exact validation the platform runs at publish. `compile` produces `dist/bridge`, an amd64 binary — serverk publishes game images for `linux/amd64` only.
+`.githooks/pre-commit` runs `bun run fix`, `bun run tsc`, `bun run test`, `bun run validate` and `bunx serverk-bridge schema --check` before every commit. There is no CI: a commit that passes the hook is ready.
 
-The `.githooks/pre-commit` hook is the gate: it runs `fix`, `tsc`, `test`, `validate`, and `serverk-bridge schema --check` on every commit. `bun install` wires it up through the `prepare` script.
-
-The driver is built on [`@serverkgg/bridge`](https://www.npmjs.com/package/@serverkgg/bridge). `serverk-bridge link` points it at a local bridge checkout on every install — never commit a `file:` dependency.
+`bun install` runs `serverk-bridge link`, which links `@serverkgg/bridge` to a sibling `serverk` checkout at `../serverk/modules/bridge` when one exists. Never commit a `file:` or `link:` dependency.
 
 ## Contribute
 
-- افتح issue لأي مشكلة أو اقتراح — بالعربي أو بالإنجليزي، كلها مرحّب فيها.
-- Run `bun run check`, `bun run tsc`, `bun run test` and `bun run validate` before you open a pull request — the same checks the pre-commit hook runs.
-- Releases are done by the Serverk team through the platform's central release pipeline; merged changes ride the next release.
+افتح issue لأي مشكلة أو اقتراح، بالعربية أو بالإنجليزية. ينشر فريق سيرفرك هذا الريبو من ريبو `serverk` بالأمر `bunx outdo package --prod --name hytale`، ويصل كل تغيير مدموج مع النشر التالي. العربية هي لغة المصدر: يُكتب كل نص يقرؤه العميل بالعربية أولًا، بلغة رسمية مع لمسة خليجية خفيفة، ثم بالإنجليزية. أبقِ أسماء الملفات والأوامر والمفاتيح بالحروف اللاتينية.
 
-## Arabic copy
+Open an issue for any problem or suggestion, in Arabic or English. Serverk releases this repository from `serverk` with `bunx outdo package --prod --name hytale`; merged changes ride the next release. Arabic is the source language: every string a customer reads is written in Arabic first, formal with a light Gulf touch, then in English. Keep file names, commands and config keys in Latin script.
 
-Arabic is the source language of the platform. Player-facing strings in `serverk.yml` and the guides use Gulf gaming Arabic — the game's Arabic name is always «هايتيل», written solid.
+## License
+
+الكود متاح للقراءة، وجميع الحقوق محفوظة لمنصة سيرفرك، ولا يُمنح أي ترخيص.
+
+The code is public to read. All rights are reserved by Serverk, and no license is granted.
+
+يُنشأ هذا الملف بالأمر `serverk-bridge readme` من `serverk.yml`، فعدّل ملف التعريف لا هذا الملف.
+
+Generated by `serverk-bridge readme` from `serverk.yml`; edit the manifest, not this file.
